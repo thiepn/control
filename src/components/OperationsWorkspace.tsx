@@ -52,6 +52,16 @@ export default function OperationsWorkspace({projects}:{projects:Project[]}){
   return()=>{window.removeEventListener('online',change);window.removeEventListener('offline',change);}
  },[]);
  useEffect(()=>{refresh(page,filter,dirty);},[page,filter,refresh]);
+ useEffect(()=>{const guard=(event:BeforeUnloadEvent)=>{
+  if(dirty){event.preventDefault();event.returnValue='';}
+ };window.addEventListener('beforeunload',guard);
+ return()=>window.removeEventListener('beforeunload',guard);},[dirty]);
+ const copyDraft=async()=>{
+  const text=['P6 REVIEW RECOVERY COPY',week,
+   'Wins:',notes.wins,'Blockers:',notes.blockers,'Next week:',notes.next_week].join('\n');
+  try{await navigator.clipboard.writeText(text);setNotice('Review text copied locally; no upload performed.');setError('');}
+  catch{setError('Clipboard unavailable. Select and copy the text before refreshing.');}
+ };
  const review=reviews.find(r=>r.week_start===week);
  const edit=(key:keyof typeof blank,value:string)=>{setNotes(x=>({...x,[key]:value}));setDirty(true);};
  const submit=async(action:'draft'|'submit')=>{
@@ -73,7 +83,7 @@ export default function OperationsWorkspace({projects}:{projects:Project[]}){
  return <section className="operations" aria-label="Portfolio operations and weekly reviews">
   <div className="section-label"><strong>PORTFOLIO INSIGHTS</strong><span>RECORDED DATA ONLY</span></div>
   <div className="ops-toolbar">
-   <span aria-live="polite">{online?'Connection available':'Offline — changes disabled'}</span>
+   <span aria-live="polite">{online?'Network reports online — server not verified':'Offline — changes disabled'}</span>
    <button type="button" onClick={reload} disabled={loading||busy}>Retry / refresh data</button>
    <button type="button" onClick={()=>window.location.reload()}>Reload session</button>
   </div>
@@ -104,6 +114,7 @@ export default function OperationsWorkspace({projects}:{projects:Project[]}){
     <label key={key}>{label}<textarea value={notes[key]} rows={3} maxLength={2000} onChange={e=>edit(key,e.target.value)} placeholder={'Write '+label.toLowerCase()+'…'}/></label>)}
    <div className="ops-actions">
     <button type="submit" disabled={busy||loading||!online||!week}>Save draft</button>
+    <button type="button" disabled={busy||!dirty} onClick={copyDraft}>Copy unsaved review</button>
     <button type="button" disabled={busy||loading||!online||!week} onClick={()=>submit('submit')}>Submit and lock review</button>
     <span>{dirty?'Unsaved changes':'All changes saved or unchanged'}</span>
    </div>
