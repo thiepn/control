@@ -47,7 +47,7 @@ test('real Review UI renders metrics, accessible status and provenance disclosur
  await page.goto('/p6-fixture-internal');
  await expect(page.getByRole('heading',{name:'Portfolio Review'})).toBeVisible();
  await expect(page.getByText('RECORDED DATA ONLY')).toBeVisible();
- await expect(page.getByText('Synthetic Atlas')).toBeVisible();
+ await expect(page.locator('.ops-audit').getByText('Synthetic Atlas')).toBeVisible();
  await expect(page.getByText(/Synthetic data only/)).not.toBeVisible();
  await page.getByText('synthetic.review').click();
  await page.getByText('View recorded change').click();
@@ -62,7 +62,7 @@ test('review submission is locked; audit paging and disabled state reflect real 
  await page.getByRole('textbox',{name:'Wins and completed work'}).fill('Synthetic P6 test passed');
  await page.getByRole('textbox',{name:'Outstanding blockers'}).fill('Physical acceptance not signed');
  await page.getByRole('button',{name:'Submit and lock review'}).click();
- await expect(page.getByText('Submitted and locked')).toBeVisible();
+ await expect(page.locator('.ops-review-locked').getByText('Submitted and locked')).toBeVisible();
  await expect(page.getByText('Synthetic P6 test passed')).toBeVisible();
  await expect(page.getByRole('button',{name:'Save draft'})).toHaveCount(0);
  await page.getByRole('button',{name:'Next',exact:true}).click();
@@ -74,7 +74,7 @@ test('409 conflict keeps local draft and offers retry, not silent overwrite',asy
  const wins=page.getByRole('textbox',{name:'Wins and completed work'});
  await wins.fill('Do not discard this unsaved text');
  await page.getByRole('button',{name:'Save draft'}).click();
- await expect(page.getByRole('alert')).toContainText('This review changed');
+ await expect(page.locator('.status.failure[role="alert"]')).toContainText('This review changed');
  await expect(wins).toHaveValue('Do not discard this unsaved text');
  await expect(page.getByRole('button',{name:'Copy unsaved review'})).toBeEnabled();
 });
