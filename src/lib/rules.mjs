@@ -27,9 +27,13 @@ export function assertFocus(ids){
  if(!Array.isArray(ids)||ids.length>3||new Set(ids).size!==ids.length||ids.some(x=>typeof x!=='string'||!/^[a-f0-9-]{36}$/i.test(x))) throw Error('Choose 0–3 distinct projects');
  return ids;
 }
-export function weekStart(date = new Date()) {
- const d = new Date(Date.UTC(date.getUTCFullYear(),date.getUTCMonth(),date.getUTCDate()));
- d.setUTCDate(d.getUTCDate()-((d.getUTCDay()+6)%7));return d.toISOString().slice(0,10);
+export function weekStart(date = new Date(), timeZone = 'Europe/Berlin') {
+ const parts = Object.fromEntries(new Intl.DateTimeFormat('en-GB', {
+  timeZone, year:'numeric', month:'2-digit', day:'2-digit'
+ }).formatToParts(date).filter(x=>x.type!=='literal').map(x=>[x.type,x.value]));
+ const monday = new Date(Date.UTC(Number(parts.year),Number(parts.month)-1,Number(parts.day)));
+ monday.setUTCDate(monday.getUTCDate()-((monday.getUTCDay()+6)%7));
+ return monday.toISOString().slice(0,10);
 }
 export function orderProjects(rows,sort='manual') {
  const a=[...rows];
