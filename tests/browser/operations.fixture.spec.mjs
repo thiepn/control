@@ -44,7 +44,7 @@ function setupRoutes(page,{conflict=false}={}){
 }
 test('real Review UI renders metrics, accessible status and provenance disclosure',async({page})=>{
  await setupRoutes(page);
- await page.goto('/__p6_fixture__');
+ await page.goto('/p6-fixture-internal');
  await expect(page.getByRole('heading',{name:'Portfolio Review'})).toBeVisible();
  await expect(page.getByText('RECORDED DATA ONLY')).toBeVisible();
  await expect(page.getByText('Synthetic Atlas')).toBeVisible();
@@ -58,7 +58,7 @@ test('real Review UI renders metrics, accessible status and provenance disclosur
 });
 test('review submission is locked; audit paging and disabled state reflect real UI',async({page})=>{
  await setupRoutes(page);
- await page.goto('/__p6_fixture__');
+ await page.goto('/p6-fixture-internal');
  await page.getByRole('textbox',{name:'Wins and completed work'}).fill('Synthetic P6 test passed');
  await page.getByRole('textbox',{name:'Outstanding blockers'}).fill('Physical acceptance not signed');
  await page.getByRole('button',{name:'Submit and lock review'}).click();
@@ -70,7 +70,7 @@ test('review submission is locked; audit paging and disabled state reflect real 
 });
 test('409 conflict keeps local draft and offers retry, not silent overwrite',async({page})=>{
  await setupRoutes(page,{conflict:true});
- await page.goto('/__p6_fixture__');
+ await page.goto('/p6-fixture-internal');
  const wins=page.getByRole('textbox',{name:'Wins and completed work'});
  await wins.fill('Do not discard this unsaved text');
  await page.getByRole('button',{name:'Save draft'}).click();
@@ -80,7 +80,7 @@ test('409 conflict keeps local draft and offers retry, not silent overwrite',asy
 });
 test('offline state disables writes and keyboard skip navigation remains reachable',async({page,context})=>{
  await setupRoutes(page);
- await page.goto('/__p6_fixture__');
+ await page.goto('/p6-fixture-internal');
  await page.keyboard.press('Tab');
  await expect(page.getByRole('link',{name:'Skip to main content'})).toBeFocused();
  await context.setOffline(true);
@@ -93,7 +93,7 @@ test('offline state disables writes and keyboard skip navigation remains reachab
 test('fixture browser performance and keyboard focus have explicit, bounded evidence',async({page},testInfo)=>{
  await setupRoutes(page);
  const started=Date.now();
- await page.goto('/__p6_fixture__');
+ await page.goto('/p6-fixture-internal');
  await expect(page.getByRole('heading',{name:'Portfolio Review'})).toBeVisible();
  const elapsed=Date.now()-started;
  expect(elapsed,'synthetic local Review interactive load exceeded 15 s').toBeLessThan(15000);

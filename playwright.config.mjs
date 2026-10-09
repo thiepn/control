@@ -15,7 +15,7 @@ export default defineConfig({
   {name:'chromium-desktop',use:{...devices['Desktop Chrome'],viewport:{width:1366,height:768}}},
   {name:'chromium-mobile',use:{...devices['Pixel 7'],browserName:'chromium'}}
  ],
- webServer:{command:'npm run start -- -p 3137',url:'http://127.0.0.1:3137/__p6_fixture__',
+ webServer:{command:'npm run start -- -p 3137',url:'http://127.0.0.1:3137/p6-fixture-internal',
   reuseExistingServer:!process.env.CI,timeout:120000,
   env:{CONTROL_P6_FIXTURE_MODE:'ISOLATED_BROWSER_CI'}},
  outputDir:'test-results/p6-browser'
