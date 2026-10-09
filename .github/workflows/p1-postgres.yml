@@ -1,0 +1,33 @@
+name: P1 Ephemeral PostgreSQL RLS
+on:
+  push:
+    branches: ['feat/p1-core-portfolio']
+    paths: ['db/**', 'tests/sql/**', '.github/workflows/p1-postgres.yml']
+  pull_request:
+    paths: ['db/**', 'tests/sql/**', '.github/workflows/p1-postgres.yml']
+permissions:
+  contents: read
+jobs:
+  real-postgres-rls:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: test-only
+          POSTGRES_DB: control_ephemeral
+        options: >-
+          --health-cmd "pg_isready -U postgres -d control_ephemeral"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run actual PostgreSQL security and transaction assertions
+        run: |
+          set -euo pipefail
+          cat tests/sql/bootstrap.sql db/schema.sql db/p1-app.sql tests/sql/qualify.sql | \
+            docker exec -i "${{ job.services.postgres.id }}" \
+              psql -U postgres -d control_ephemeral -v ON_ERROR_STOP=1
+      - name: Clearly delimit scope
+        run: |
+          echo "This tests PostgreSQL in a disposable CI container."
+          echo "The separate Supabase two-user authenticated gate remains mandatory."
