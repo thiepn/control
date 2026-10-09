@@ -25,3 +25,42 @@
 .priority-decision strong{font-size:14px}
 @media(max-width:700px){.priority-decision{align-items:flex-start;flex-direction:column}.priority-project{padding:18px 0}.sidebar nav{flex-wrap:wrap}.sidebar nav button{flex-basis:30%;min-width:0}.priority-controls label{flex-wrap:wrap}}
 @media(prefers-reduced-motion:reduce){.priority-project,.priority-card,.priority-decision{scroll-behavior:auto}}
+
+/* P5 operations: utility-first editorial layout with keyboard-visible recovery controls */
+.skip-control{position:fixed;top:6px;left:6px;z-index:1000;transform:translateY(-180%);background:#eef6ef;color:#163c35;padding:12px 16px;border:2px solid #266d61;font-size:12px}
+.skip-control:focus{transform:translateY(0)}
+.operations{max-width:1180px}
+.ops-toolbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:12px 0 21px;font-size:12px;color:var(--muted)}
+.ops-toolbar button,.ops-actions button,.ops-pages button{border:1px solid #a6b8af;background:var(--white);color:var(--ink);padding:9px 13px;min-height:40px;font-size:12px}
+.ops-toolbar select{min-width:170px;max-width:min(100%,420px);padding:10px}
+.ops-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line)}
+.ops-metric{background:var(--white);padding:18px 16px;min-width:0;display:flex;flex-direction:column;gap:9px}
+.ops-metric span{font-size:10px;letter-spacing:.06em;color:var(--muted);text-transform:uppercase}
+.ops-metric strong{font:600 clamp(20px,3vw,30px)/1.1 'Space Grotesk';font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.ops-review-form{display:grid;gap:16px;max-width:920px}
+.ops-review-form label{display:grid;gap:6px;font-size:12px;font-weight:650}
+.ops-review-form textarea{padding:12px;min-height:92px;line-height:1.5}
+.ops-actions,.ops-pages{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.ops-actions span{font-size:11px;color:var(--muted)}
+.ops-review-locked{background:#edf4ef;padding:22px;border-left:3px solid #407f6b}
+.ops-review-locked dl{display:grid;grid-template-columns:minmax(80px,110px) 1fr;gap:12px;font-size:13px}
+.ops-review-locked dt{font-weight:700}.ops-review-locked dd{margin:0;white-space:pre-wrap;overflow-wrap:anywhere}
+.ops-review-history{margin-top:24px}.ops-review-history>strong{font-size:11px;letter-spacing:.06em}
+.ops-review-history details{padding:12px;border-bottom:1px solid var(--line);font-size:12px}
+.ops-review-history summary,.ops-audit summary{cursor:pointer}
+.ops-review-history p{white-space:pre-wrap;overflow-wrap:anywhere}
+.ops-diagnostics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.ops-diagnostic{border:1px solid var(--line);background:var(--white);padding:18px;min-width:0}
+.ops-diagnostic strong{font-size:13px}.ops-diagnostic span{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);margin-top:12px}
+.ops-diagnostic p{color:var(--muted);line-height:1.5;font-size:12px;margin-bottom:0}
+.ops-audit>details{border-top:1px solid var(--line);padding:14px 0}
+.ops-audit>details>summary{display:grid;grid-template-columns:155px minmax(90px,1fr) minmax(150px,2fr) 75px;gap:12px;align-items:center;list-style:none;font-size:12px}
+.ops-audit summary::-webkit-details-marker{display:none}
+.ops-audit summary::before{content:'+';font-weight:800;color:var(--accent);grid-column:1;grid-row:1}
+.ops-audit>details>summary time{grid-column:1;grid-row:1;padding-left:20px;font-size:10px;color:var(--muted)}
+.ops-audit>details>summary small{color:var(--muted)}
+.ops-audit-detail{margin:12px 0 0 20px;max-width:100%;font-size:12px}
+.ops-audit-detail pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:350px;overflow:auto;background:#e9eee9;padding:12px;font-size:11px}
+.ops-pages{margin:17px 0 30px}.ops-pages span{font-size:12px;color:var(--muted)}
+@media(max-width:900px){.ops-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.ops-audit>details>summary{grid-template-columns:125px 1fr;gap:7px}.ops-audit>details>summary strong{grid-column:1/-1;padding-left:20px}.ops-audit>details>summary small{grid-column:2}.ops-audit>details>summary time{padding-left:16px}}
+@media(max-width:520px){.ops-diagnostics{grid-template-columns:1fr}.ops-metric{padding:14px 11px}.ops-review-locked dl{grid-template-columns:1fr;gap:3px}.ops-review-locked dd{margin-bottom:10px}.ops-actions button{flex:1}.ops-audit>details>summary{grid-template-columns:1fr}.ops-audit>details>summary time,.ops-audit>details>summary strong,.ops-audit>details>summary small{grid-column:1;padding-left:14px}.ops-audit>details>summary span{padding-left:14px}}
