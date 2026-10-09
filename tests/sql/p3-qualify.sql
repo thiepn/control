@@ -49,7 +49,7 @@ BEGIN
  IF NOT EXISTS (SELECT 1 FROM public.development_phases WHERE owner_id=a AND project_id=p.id
   AND phase_key='P4' AND head_sha=repeat('b',40) AND state='verification')
  THEN RAISE EXCEPTION 'tracked head incorrectly changed phase'; END IF;
-END $;
+END $$;
 SET ROLE authenticated;
 SET request.jwt.claim.sub='22222222-2222-4222-8222-222222222222';
 DO $$

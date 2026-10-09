@@ -70,11 +70,11 @@ GRANT EXECUTE ON FUNCTION public.control_decide_github_proposal(uuid,uuid,text) 
 -- Retroactive successful-run evidence becomes a pending review proposal.
 CREATE FUNCTION public.control_track_github_head(
  p_owner uuid,p_project uuid,p_phase text,p_sha text
-) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,public AS $
+) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,public AS $$
 DECLARE v_phase_id uuid; ev record;
 BEGIN
- IF p_owner IS NULL OR p_project IS NULL OR p_phase !~ '^P[0-9]{1,3}
-    OR p_sha !~ '^[0-9a-f]{40}
+ IF p_owner IS NULL OR p_project IS NULL OR p_phase !~ '^P[0-9]{1,3}$'
+    OR p_sha !~ '^[0-9a-f]{40}$'
  THEN RAISE EXCEPTION 'Invalid head association' USING ERRCODE='22023'; END IF;
  PERFORM pg_advisory_xact_lock(hashtextextended(p_owner::text,11));
  IF NOT EXISTS(SELECT 1 FROM public.evidence_events
@@ -105,7 +105,7 @@ BEGIN
  VALUES(p_owner,p_project,'user','github.phase.track_head',
    jsonb_build_object('phase_key',p_phase,'head_sha',p_sha));
  RETURN jsonb_build_object('phase_id',v_phase_id,'head_sha',p_sha);
-END $;
+END $$;
 REVOKE ALL ON FUNCTION public.control_track_github_head(uuid,uuid,text,text) FROM PUBLIC,anon,authenticated;
 GRANT EXECUTE ON FUNCTION public.control_track_github_head(uuid,uuid,text,text) TO service_role;
 
