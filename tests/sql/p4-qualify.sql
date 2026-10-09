@@ -28,8 +28,16 @@ BEGIN
  EXCEPTION WHEN SQLSTATE 'P0002' THEN denied:=true; END;
  IF NOT denied THEN RAISE EXCEPTION 'duplicate approval accepted'; END IF;
  SELECT * INTO p FROM public.projects WHERE id=p.id;
+ -- Earlier P2 fixture already occupies a slot. Capacity=1 must reject new entries.
+ denied:=false;
+ BEGIN
+  PERFORM public.control_p4_prepare(owner_a,p.id,'focus',repeat('d',64),p.version,65,
+    '{"engine":"p4-rules-1"}',jsonb_build_object('week',week,'capacity',1));
+ EXCEPTION WHEN SQLSTATE '22023' THEN denied:=true;
+ END;
+ IF NOT denied THEN RAISE EXCEPTION 'full focus capacity accepted an extra project'; END IF;
  focus_q:=public.control_p4_prepare(owner_a,p.id,'focus',repeat('b',64),p.version,65,
-      '{"engine":"p4-rules-1"}',jsonb_build_object('week',week,'capacity',1));
+      '{"engine":"p4-rules-1"}',jsonb_build_object('week',week,'capacity',3));
  PERFORM public.control_p4_decide(owner_a,focus_q,'accepted');
  IF NOT EXISTS(SELECT 1 FROM public.focus_items i JOIN public.focus_plans f
   ON f.id=i.plan_id WHERE f.owner_id=owner_a AND f.week_start=week AND i.project_id=p.id)
