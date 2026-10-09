@@ -1,0 +1,80 @@
+name: P6 Release Evidence Qualification
+on:
+  push:
+    branches: ['feat/p6-release-device-evidence']
+  pull_request:
+    paths: ['src/**','db/**','tests/**','scripts/p6-*','docs/14-p6-acceptance.md','playwright*.mjs','.github/workflows/p6-qualification.yml']
+permissions:
+  contents: read
+jobs:
+  application:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+  postgres:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: P0-P5 isolated RLS and P6 concurrent review transactions
+        run: |
+          set -euo pipefail
+          sudo systemctl start postgresql.service
+          sudo -u postgres createdb control_p6_test
+          cat tests/sql/bootstrap.sql db/schema.sql db/p1-app.sql db/p2-progress.sql db/p3-github.sql db/p4-recommendations.sql db/p5-reviews.sql tests/sql/qualify.sql tests/sql/qualify-candidates.sql tests/sql/p2-qualify.sql tests/sql/p3-qualify.sql tests/sql/p4-qualify.sql tests/sql/p5-qualify.sql | sudo -u postgres psql -d control_p6_test -v ON_ERROR_STOP=1
+          node scripts/p6-concurrency.mjs
+      - run: echo "Local PostgreSQL fixture only; real Supabase Auth acceptance separate."
+  browser-fixture:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - name: Install pinned Playwright without lockfile mutation
+        run: npm install --no-save --no-package-lock @playwright/test@1.56.1
+      - run: npx playwright install --with-deps chromium
+      - name: Desktop and mobile Chromium on guarded synthetic Review fixture
+        run: npx playwright test --config=playwright.config.mjs
+      - name: Upload synthetic-only screenshots and traces
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p6-synthetic-browser-evidence
+          path: test-results/
+          if-no-files-found: warn
+          retention-days: 7
+  rehearsal:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+      - name: Nondeploying source-bound release handoff
+        run: node scripts/p6-rehearsal.mjs
+      - name: Independent manifest verification
+        run: cd release-evidence/p6 && sha256sum --check SHA256SUMS
+      - name: Upload review-only evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: p6-review-only-release-rehearsal
+          path: release-evidence/p6/
+          retention-days: 7
