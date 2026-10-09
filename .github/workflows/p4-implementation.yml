@@ -1,0 +1,32 @@
+name: P4 Intelligent Prioritization Checks
+on:
+  push:
+    branches: ['feat/p4-intelligent-prioritization']
+  pull_request:
+    paths: ['db/**','src/**','tests/**','.github/workflows/p4-implementation.yml']
+permissions:
+  contents: read
+jobs:
+  app:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+  postgres:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Qualify P0–P4 security and transaction regressions in runner-local PostgreSQL
+        run: |
+          set -euo pipefail
+          sudo systemctl start postgresql.service
+          sudo -u postgres createdb control_p4_test
+          cat tests/sql/bootstrap.sql db/schema.sql db/p1-app.sql db/p2-progress.sql db/p3-github.sql db/p4-recommendations.sql tests/sql/qualify.sql tests/sql/qualify-candidates.sql tests/sql/p2-qualify.sql tests/sql/p3-qualify.sql tests/sql/p4-qualify.sql | sudo -u postgres psql -d control_p4_test -v ON_ERROR_STOP=1
+      - run: echo "Real Supabase Auth, protected devices, and external approval remain independent acceptance steps."
