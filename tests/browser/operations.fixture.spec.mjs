@@ -12,6 +12,10 @@ const fixtures={
  integrations:[{id:'github_app',label:'GitHub App reconciliation',status:'not_configured',detail:'Fixture has no credentials'}]
 };
 function setupRoutes(page,{conflict=false}={}){
+ // The device receipt API is separately mocked in fixture tests; never access live Auth.
+ page.route('**/api/p7/evidence',route=>route.fulfill({
+  status:200,contentType:'application/json',
+  body:JSON.stringify({items:[],note:'Synthetic fixture only; no approval'})}));
  let review=null, auditRequests=0;
  return page.route('**/api/operations/**',async route=>{
   const req=route.request(),url=new URL(req.url()),json=x=>route.fulfill({
@@ -74,7 +78,7 @@ test('409 conflict keeps local draft and offers retry, not silent overwrite',asy
  const wins=page.getByRole('textbox',{name:'Wins and completed work'});
  await wins.fill('Do not discard this unsaved text');
  await page.getByRole('button',{name:'Save draft'}).click();
- await expect(page.locator('.status.failure[role="alert"]')).toContainText('This review changed');
+ await expect(page.locator('section.operations > .status.failure[role="alert"]')).toContainText('This review changed');
  await expect(wins).toHaveValue('Do not discard this unsaved text');
  await expect(page.getByRole('button',{name:'Copy unsaved review'})).toBeEnabled();
 });
