@@ -1,0 +1,10 @@
+# Private inventory and information from connected repositories: never commit.
+data/private/
+.env
+.env.*
+!.env.example
+node_modules/
+.next/
+out/
+coverage/
+.DS_Store
