@@ -1,5 +1,6 @@
 'use client';
 import {useCallback,useEffect,useState} from 'react';
+import DeviceEvidencePanel from './DeviceEvidencePanel';
 type Project={id:string;title:string};
 type Summary={
  asOf:string;week:string;partial:boolean;
@@ -130,6 +131,7 @@ export default function OperationsWorkspace({projects}:{projects:Project[]}){
   <div className="ops-diagnostics">{diagnostics.map(d=><article key={d.id} className="ops-diagnostic">
    <strong>{d.label}</strong><span>{d.status.replaceAll('_',' ')}</span><p>{d.detail}</p>
   </article>)}</div>
+  <DeviceEvidencePanel/>
   <div className="section-label"><strong>AUDIT & PROVENANCE</strong><span>OWNER-ONLY HISTORY</span></div>
   <div className="ops-toolbar"><label htmlFor="ops-filter">Project</label><select id="ops-filter" value={filter} onChange={e=>changeFilter(e.target.value)}>
    <option value="">All projects</option>{projects.map(p=><option key={p.id} value={p.id}>{p.title}</option>)}

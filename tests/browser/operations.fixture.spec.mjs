@@ -103,3 +103,27 @@ test('fixture browser performance and keyboard focus have explicit, bounded evid
  const missing=await page.locator('button:visible').count();
  expect(missing).toBeGreaterThan(1);
 });
+
+test('source-linked observation stays unverified and rejects forged intake',async({page})=>{
+ await setupRoutes(page);
+ let saved=null;
+ await page.route('**/api/p7/evidence',async route=>{
+  const req=route.request(),json=v=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(v)});
+  if(req.method()==='GET')return json({items:saved?[saved]:[]});
+  const data=req.postDataJSON();
+  if(data.source_sha.length!==40||data.evidence_sha256.length!==64)
+   return route.fulfill({status:400,contentType:'application/json',body:JSON.stringify({error:'Invalid observation metadata'})});
+  saved={id:'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',surface:data.surface,
+   source_sha:data.source_sha,evidence_sha256:data.evidence_sha256,observation:data.observation,
+   classification:'self_reported_unverified',recorded_at:'2026-10-10T00:00:00Z'};
+  return json({id:saved.id,classification:'self_reported_unverified',acceptedAsApproval:false});
+ });
+ await page.goto('/p6-fixture-internal');
+ await expect(page.getByText('DEVICE EVIDENCE RECEIPTS')).toBeVisible();
+ await page.getByRole('textbox',{name:'Exact source commit SHA'}).fill('a'.repeat(40));
+ await page.getByRole('textbox',{name:'Evidence SHA256'}).fill('b'.repeat(64));
+ await page.getByRole('textbox',{name:'Non-sensitive observation (max 500 characters)'}).fill('Synthetic screen reader keyboard check');
+ await page.getByRole('button',{name:'Record unverified receipt'}).click();
+ await expect(page.getByText('Unverified — no approval')).toBeVisible();
+ await expect(page.getByText(/does not certify a physical device/)).toBeVisible();
+});
