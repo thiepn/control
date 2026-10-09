@@ -7,6 +7,9 @@ export const files=[
  'package-lock.json','db/schema.sql','db/p1-app.sql','db/p2-progress.sql',
  'db/p3-github.sql','db/p4-recommendations.sql','db/p5-reviews.sql','db/p7-device-receipts.sql',
  'src/lib/p7-release.mjs','src/lib/p7-staging.mjs',
+ 'scripts/p7-rehearsal.mjs','scripts/p7-evaluate-operator.mjs',
+ 'src/app/api/p7/evidence/route.ts','src/components/DeviceEvidencePanel.tsx',
+ 'tests/browser/operations.fixture.spec.mjs',
  '.github/workflows/p7-qualification.yml','docs/15-p7-acceptance.md'
 ];
 export function makeManifest(commit,now,read=readFileSync){

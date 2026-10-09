@@ -131,3 +131,16 @@ test('source-linked observation stays unverified and rejects forged intake',asyn
  await expect(page.getByText('Unverified — no approval')).toBeVisible();
  await expect(page.getByText(/does not certify a physical device/)).toBeVisible();
 });
+
+test('narrow-phone evidence form remains labeled, keyboard usable and free of horizontal overflow',async({page})=>{
+ await setupRoutes(page);
+ await page.setViewportSize({width:320,height:720});
+ await page.goto('/p6-fixture-internal');
+ await expect(page.getByRole('combobox',{name:'Test surface'})).toBeVisible();
+ const digest=page.getByRole('textbox',{name:'Evidence SHA256'});
+ await digest.focus();
+ await expect(digest).toBeFocused();
+ await expect(page.getByRole('button',{name:'Record unverified receipt'})).toBeVisible();
+ const overflow=await page.evaluate(()=>document.documentElement.scrollWidth>window.innerWidth+2);
+ expect(overflow,'320px horizontal overflow').toBe(false);
+});
