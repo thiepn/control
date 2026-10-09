@@ -17,6 +17,9 @@ export function mondayOf(day){
  d.setUTCDate(d.getUTCDate()-(d.getUTCDay()+6)%7);
  return d.toISOString().slice(0,10);
 }
+/** @param {{projects?:any[],phases?:any[],milestones?:any[],focus?:any[],reviews?:any[],events?:any[],partial?:boolean}} dataset
+ * @param {string} today
+ */
 export function summarizePortfolio({projects=[],phases=[],milestones=[],focus=[],reviews=[],events=[],partial=false},today){
  if(!isDay(today))throw Error('An explicit calendar date is required');
  for(const input of [projects,phases,milestones,focus,reviews,events])
@@ -58,6 +61,7 @@ export function summarizePortfolio({projects=[],phases=[],milestones=[],focus=[]
   methodology:'Authenticated owner records only; milestones count as verified only with explicit source and passed release gates.'
  };
 }
+/** @param {{githubAppConfigured?:boolean,webhookConfigured?:boolean,linked?:number,events?:number,latestEvent?:string|null,at:string}} config */
 export function diagnoseIntegrations({githubAppConfigured=false,webhookConfigured=false,linked=0,events=0,latestEvent=null,at}){
  if(!at||Number.isNaN(Date.parse(at)))throw Error('Current timestamp required');
  const age=latestEvent&&Date.parse(latestEvent)<=Date.parse(at)

@@ -29,4 +29,4 @@ jobs:
           sudo systemctl start postgresql.service
           sudo -u postgres createdb control_p5_test
           cat tests/sql/bootstrap.sql db/schema.sql db/p1-app.sql db/p2-progress.sql db/p3-github.sql db/p4-recommendations.sql db/p5-reviews.sql tests/sql/qualify.sql tests/sql/qualify-candidates.sql tests/sql/p2-qualify.sql tests/sql/p3-qualify.sql tests/sql/p4-qualify.sql tests/sql/p5-qualify.sql | sudo -u postgres psql -d control_p5_test -v ON_ERROR_STOP=1
-      - run: echo "P5 fixture is isolated: not a real Supabase Auth deployment."
+      - run: echo "P5 fixture is isolated; not a real Supabase Auth deployment."
