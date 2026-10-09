@@ -45,8 +45,10 @@ detached attestation/signature files. Self-reported device receipts never
 satisfy that signature. Even a valid signature does NOT cause merge, migration
 or deployment; separate explicit authorization remains necessary.
 
+Set CONTROL_P7_EXPECTED_HEAD to the reviewed exact 40-character Git branch head.
 Run node scripts/p7-rehearsal.mjs create followed by
-node scripts/p7-rehearsal.mjs verify. The manifest remains unsigned,
+node scripts/p7-rehearsal.mjs verify. On GitHub Actions, checkout explicitly
+uses pull_request.head.sha instead of the transient synthetic PR merge commit. The manifest remains unsigned,
 unapproved, undeployed and linked to every hashed source input.
 
 ### Rollback and recovery

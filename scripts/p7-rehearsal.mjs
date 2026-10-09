@@ -40,6 +40,9 @@ export function verifyManifest(manifest,expectedHead,read=readFileSync){
 if(process.argv[1]?.endsWith('p7-rehearsal.mjs')){
  const mode=process.argv[2]||'create';
  const head=execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim();
+ const expected=process.env.CONTROL_P7_EXPECTED_HEAD;
+ if(!expected||! /^[0-9a-f]{40}$/.test(expected)||head!==expected)
+  throw Error('P7 manifest must match the exact qualified source SHA, not a PR merge ref');
  const folder='release-evidence/p7';
  if(mode==='create'){
   const manifest=makeManifest(head,new Date().toISOString());
