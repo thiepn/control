@@ -25,3 +25,17 @@ test('browser bundle must not contain server secret name',()=>{
  assert.doesNotMatch(fs,/SUPABASE_SECRET_KEY|service_role/);
  assert.match(admin,/import 'server-only'/);
 });
+
+test('all authenticated browser mutation endpoints enforce same-origin',()=>{
+ for(const route of [
+  '../src/app/api/projects/route.ts',
+  '../src/app/api/projects/[id]/route.ts',
+  '../src/app/api/projects/[id]/rank/route.ts',
+  '../src/app/api/focus/route.ts',
+  '../src/app/api/candidates/route.ts',
+  '../src/app/api/candidates/[id]/route.ts'
+ ]) {
+  const source=readFileSync(new URL(route,import.meta.url),'utf8');
+  assert.match(source,/if\s*\(!sameOrigin\(req\)\)\s*return json\(\{error:/,route);
+ }
+});
