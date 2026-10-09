@@ -29,6 +29,12 @@ export function parseWebhook(raw,event,delivery,expectedInstallation){
              event==='check_run'?p.check_run:null;
   const number=event==='pull_request'?item?.number:undefined;
   const externalId=event==='push'?head:item?.id;
+  // Use the same resource revision key for webhook deliveries and later reconciliation.
+  // Duplicate notifications across channels cannot create a second evidence record.
+  const canonical=(event==='workflow_run'||event==='pull_request')
+    &&Number.isSafeInteger(item?.id)&&typeof item.updated_at==='string'
+    ? 'github:'+event+':'+item.id+':'+item.updated_at
+    : 'webhook:'+delivery;
   const summary={
     action:action.slice(0,40),state:typeof item?.state==='string'?item.state.slice(0,32):null,
     conclusion:typeof item?.conclusion==='string'?item.conclusion.slice(0,32):null,
@@ -37,13 +43,13 @@ export function parseWebhook(raw,event,delivery,expectedInstallation){
     url:typeof item?.html_url==='string'&&item.html_url.startsWith('https://github.com/')?item.html_url.slice(0,500):null,
     head_sha:head
   };
-  return {repositoryId:id,fullName:full_name,eventType:event,delivery:'webhook:'+delivery,sha:head,summary};
+  return {repositoryId:id,fullName:full_name,eventType:event,delivery:canonical.slice(0,180),sha:head,summary};
 }
 export function reconcileEvidence(repoId,kind,item){
   if(!Number.isSafeInteger(repoId)||repoId<=0 ||!['workflow_run','pull_request'].includes(kind))throw Error('Invalid reconciliation type');
   const sha=kind==='workflow_run'?item.head_sha:item.head?.sha;
   if(typeof sha!=='string'||!sha40.test(sha)||!Number.isSafeInteger(item.id))throw Error('Invalid reconciliation head');
-  const key='reconcile:'+kind+':'+item.id+':'+(item.updated_at||item.state||'unknown');
+  const key='github:'+kind+':'+item.id+':'+(item.updated_at||item.state||'unknown');
   return {repositoryId:repoId,eventType:kind,delivery:key.slice(0,180),sha,
    summary:{action:'reconcile',head_sha:sha,external_id:item.id,number:kind==='pull_request'?item.number:null,
     conclusion:kind==='workflow_run'?item.conclusion:null,
