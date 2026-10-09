@@ -39,7 +39,9 @@ export function evaluateProject(p,{today,phaseStates=[],focusIds=[]}={}){
  const suggestedPriority=score>=85?'P0':score>=60?'P1':score>=35?'P2':'P3';
  return {id:p.id,title:p.title,lifecycle:p.lifecycle,currentPriority:p.priority??null,
   version:p.version,deadline:p.deadline_date??null,nextAction:p.next_action??null,
-  score,factors,blocked,suggestedPriority,priorityChange:suggestedPriority!==p.priority,
+  score,factors,blocked,suggestedPriority,
+  // Never recommend downgrading a manually chosen priority from incomplete context.
+  priorityChange:!p.priority||(['P0','P1','P2','P3'].indexOf(suggestedPriority)<['P0','P1','P2','P3'].indexOf(p.priority)),
   confidence:!p.deadline_date||!p.next_action?'limited':'contextual',source:ENGINE_VERSION};
 }
 /** @param {any[]} projects

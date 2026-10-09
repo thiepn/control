@@ -37,3 +37,10 @@ test('completed and archived projects never receive new priority or focus sugges
  const rows=[{...base,lifecycle:'completed'},{...base,id:'b',lifecycle:'archived'}];
  assert.equal(prioritizePortfolio(rows,{today:'2026-10-10'}).ranked.length,0);
 });
+
+test('manual high priority is never automatically suggested for downgrade',()=>{
+ const row=evaluateProject({...base,priority:'P0',deadline_date:null},{today:'2026-10-10'});
+ assert.equal(row.currentPriority,'P0');assert.equal(row.priorityChange,false);
+ const urgent=evaluateProject({...base,priority:'P3',deadline_date:'2026-10-09',deadline_kind:'hard'},{today:'2026-10-10'});
+ assert.equal(urgent.priorityChange,true);
+});
