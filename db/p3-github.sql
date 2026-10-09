@@ -66,4 +66,47 @@ BEGIN
 END $$;
 REVOKE ALL ON FUNCTION public.control_decide_github_proposal(uuid,uuid,text) FROM PUBLIC,anon,authenticated;
 GRANT EXECUTE ON FUNCTION public.control_decide_github_proposal(uuid,uuid,text) TO service_role;
+-- Associate a phase with an already signed and ingested GitHub head.
+-- Retroactive successful-run evidence becomes a pending review proposal.
+CREATE FUNCTION public.control_track_github_head(
+ p_owner uuid,p_project uuid,p_phase text,p_sha text
+) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,public AS $
+DECLARE v_phase_id uuid; ev record;
+BEGIN
+ IF p_owner IS NULL OR p_project IS NULL OR p_phase !~ '^P[0-9]{1,3}
+    OR p_sha !~ '^[0-9a-f]{40}
+ THEN RAISE EXCEPTION 'Invalid head association' USING ERRCODE='22023'; END IF;
+ PERFORM pg_advisory_xact_lock(hashtextextended(p_owner::text,11));
+ IF NOT EXISTS(SELECT 1 FROM public.evidence_events
+   WHERE owner_id=p_owner AND project_id=p_project AND provider='github'
+     AND event_sha=p_sha)
+ THEN RAISE EXCEPTION 'No signed evidence for this head' USING ERRCODE='42501'; END IF;
+ UPDATE public.development_phases SET head_sha=p_sha
+  WHERE owner_id=p_owner AND project_id=p_project AND phase_key=p_phase
+    AND state IN ('planned','in_progress','verification','blocked')
+  RETURNING id INTO v_phase_id;
+ IF v_phase_id IS NULL THEN RAISE EXCEPTION 'Phase unavailable' USING ERRCODE='P0002'; END IF;
+ FOR ev IN SELECT id FROM public.evidence_events
+   WHERE owner_id=p_owner AND project_id=p_project AND provider='github'
+   AND event_sha=p_sha AND event_type='workflow_run' AND payload->>'conclusion'='success'
+ LOOP
+   IF NOT EXISTS(SELECT 1 FROM public.ai_proposals
+     WHERE owner_id=p_owner AND project_id=p_project AND proposal_type='phase'
+       AND evidence_event_ids @> ARRAY[ev.id])
+   THEN
+     INSERT INTO public.ai_proposals(owner_id,project_id,proposal_type,before_value,proposed_value,
+       rationale,evidence_event_ids,state)
+     VALUES(p_owner,p_project,'phase','{}'::jsonb,
+       jsonb_build_object('sha',p_sha,'event_id',ev.id,'suggestion','review_qualification'),
+       'Successful GitHub run at explicitly tracked phase head; review required',ARRAY[ev.id],'pending');
+   END IF;
+ END LOOP;
+ INSERT INTO public.audit_log(owner_id,project_id,actor,action,new_data)
+ VALUES(p_owner,p_project,'user','github.phase.track_head',
+   jsonb_build_object('phase_key',p_phase,'head_sha',p_sha));
+ RETURN jsonb_build_object('phase_id',v_phase_id,'head_sha',p_sha);
+END $;
+REVOKE ALL ON FUNCTION public.control_track_github_head(uuid,uuid,text,text) FROM PUBLIC,anon,authenticated;
+GRANT EXECUTE ON FUNCTION public.control_track_github_head(uuid,uuid,text,text) TO service_role;
+
 COMMIT;

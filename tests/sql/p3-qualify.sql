@@ -31,7 +31,25 @@ BEGIN
  THEN RAISE EXCEPTION 'acknowledgment improperly changed phase'; END IF;
  IF EXISTS(SELECT 1 FROM public.evidence_events WHERE owner_id=b AND provider_event_id='webhook:aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee')
  THEN RAISE EXCEPTION 'cross-owner evidence leak'; END IF;
-END $$;
+
+ -- Linking previously ingested exact-head evidence must produce retroactive proposals.
+ INSERT INTO public.development_phases(owner_id,project_id,phase_key,state)
+ VALUES(a,p.id,'P4','verification');
+ count_new:=public.control_ingest_github_event(777001,'webhook:aaaaaaaa-bbbb-4ccc-8ddd-ffffffffffff',
+  'workflow_run',repeat('b',40),'{"conclusion":"success","external_id":45}'::jsonb);
+ IF count_new<>1 THEN RAISE EXCEPTION 'unmatched head not ingested'; END IF;
+ IF (SELECT count(*) FROM public.ai_proposals WHERE owner_id=a AND project_id=p.id)<>1
+ THEN RAISE EXCEPTION 'unmatched head created premature proposal'; END IF;
+ PERFORM public.control_track_github_head(a,p.id,'P4',repeat('b',40));
+ IF (SELECT count(*) FROM public.ai_proposals WHERE owner_id=a AND project_id=p.id)<>2
+ THEN RAISE EXCEPTION 'retroactive exact-head proposal missing'; END IF;
+ PERFORM public.control_track_github_head(a,p.id,'P4',repeat('b',40));
+ IF (SELECT count(*) FROM public.ai_proposals WHERE owner_id=a AND project_id=p.id)<>2
+ THEN RAISE EXCEPTION 'retrack duplicated proposal'; END IF;
+ IF NOT EXISTS (SELECT 1 FROM public.development_phases WHERE owner_id=a AND project_id=p.id
+  AND phase_key='P4' AND head_sha=repeat('b',40) AND state='verification')
+ THEN RAISE EXCEPTION 'tracked head incorrectly changed phase'; END IF;
+END $;
 SET ROLE authenticated;
 SET request.jwt.claim.sub='22222222-2222-4222-8222-222222222222';
 DO $$
