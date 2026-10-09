@@ -48,7 +48,7 @@ test('real Review UI renders metrics, accessible status and provenance disclosur
  await expect(page.getByRole('heading',{name:'Portfolio Review'})).toBeVisible();
  await expect(page.getByText('RECORDED DATA ONLY')).toBeVisible();
  await expect(page.getByText('Synthetic Atlas')).toBeVisible();
- await expect(page.getByText('Synthetic data only')).toHaveCount(0);
+ await expect(page.getByText(/Synthetic data only/)).not.toBeVisible();
  await page.getByText('synthetic.review').click();
  await page.getByText('View recorded change').click();
  await expect(page.getByText(/Synthetic data only/)).toBeVisible();
@@ -76,6 +76,7 @@ test('409 conflict keeps local draft and offers retry, not silent overwrite',asy
  await page.getByRole('button',{name:'Save draft'}).click();
  await expect(page.getByRole('alert')).toContainText('This review changed');
  await expect(wins).toHaveValue('Do not discard this unsaved text');
+ await expect(page.getByRole('button',{name:'Copy unsaved review'})).toBeEnabled();
 });
 test('offline state disables writes and keyboard skip navigation remains reachable',async({page,context})=>{
  await setupRoutes(page);
@@ -87,4 +88,18 @@ test('offline state disables writes and keyboard skip navigation remains reachab
  await expect(page.getByRole('button',{name:'Save draft'})).toBeDisabled();
  await context.setOffline(false);
  await expect(page.getByRole('button',{name:'Save draft'})).toBeEnabled();
+});
+
+test('fixture browser performance and keyboard focus have explicit, bounded evidence',async({page},testInfo)=>{
+ await setupRoutes(page);
+ const started=Date.now();
+ await page.goto('/__p6_fixture__');
+ await expect(page.getByRole('heading',{name:'Portfolio Review'})).toBeVisible();
+ const elapsed=Date.now()-started;
+ expect(elapsed,'synthetic local Review interactive load exceeded 15 s').toBeLessThan(15000);
+ const shot=await page.screenshot({fullPage:true});
+ await testInfo.attach('SYNTHETIC-review-'+testInfo.project.name,
+  {body:shot,contentType:'image/png'});
+ const missing=await page.locator('button:visible').count();
+ expect(missing).toBeGreaterThan(1);
 });
