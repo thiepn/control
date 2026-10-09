@@ -152,7 +152,12 @@ BEGIN
  IF p_action='dismiss' THEN
   UPDATE public.repository_candidates SET review_status='dismissed',decided_at=now() WHERE id=p_candidate RETURNING * INTO row_;
  ELSIF p_action='link' THEN
-  IF NOT EXISTS(SELECT 1 FROM public.projects WHERE owner_id=p_owner AND id=p_project) THEN RAISE EXCEPTION 'Project missing' USING ERRCODE='42501'; END IF;
+  -- Serialize candidate links with archive/lifecycle changes for this owner.
+  -- The UI excludes archived projects; the server must enforce the same rule.
+  PERFORM pg_advisory_xact_lock(hashtextextended(p_owner::text,11));
+  IF NOT EXISTS(SELECT 1 FROM public.projects
+                WHERE owner_id=p_owner AND id=p_project AND lifecycle<>'archived')
+  THEN RAISE EXCEPTION 'Project not eligible for linking' USING ERRCODE='42501'; END IF;
   INSERT INTO public.github_repositories(owner_id,github_repository_id,full_name)
   VALUES(p_owner,row_.github_repository_id,row_.full_name)
   ON CONFLICT(owner_id,github_repository_id) DO UPDATE SET full_name=EXCLUDED.full_name RETURNING id INTO repo_id;
