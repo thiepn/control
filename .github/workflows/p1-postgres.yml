@@ -9,25 +9,21 @@ permissions:
   contents: read
 jobs:
   real-postgres-rls:
-    runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: public.ecr.aws/docker/library/postgres:17
-        env:
-          POSTGRES_PASSWORD: test-only
-          POSTGRES_DB: control_ephemeral
-        options: >-
-          --health-cmd "pg_isready -U postgres -d control_ephemeral"
-          --health-interval 5s --health-timeout 5s --health-retries 10
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
+      - name: Start runner-local disposable PostgreSQL
+        run: |
+          set -euo pipefail
+          sudo systemctl start postgresql.service
+          sudo -u postgres createdb control_ephemeral
+          sudo -u postgres psql -d control_ephemeral -Atqc 'SHOW server_version'
       - name: Run actual PostgreSQL security and transaction assertions
         run: |
           set -euo pipefail
           cat tests/sql/bootstrap.sql db/schema.sql db/p1-app.sql tests/sql/qualify.sql | \
-            docker exec -i "${{ job.services.postgres.id }}" \
-              psql -U postgres -d control_ephemeral -v ON_ERROR_STOP=1
+            sudo -u postgres psql -d control_ephemeral -v ON_ERROR_STOP=1
       - name: Clearly delimit scope
         run: |
-          echo "This tests PostgreSQL in a disposable CI container."
+          echo "This tests actual PostgreSQL RLS in a temporary GitHub runner database."
           echo "The separate Supabase two-user authenticated gate remains mandatory."
