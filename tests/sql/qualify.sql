@@ -65,7 +65,11 @@ END $$;
 RESET ROLE;
 -- Live PostgreSQL regression: archived projects must not remain in focus,
 -- whether archived via a lifecycle update or through the archive action.
-SET ROLE service_role;
+-- Direct internal-table assertions run as the disposable test DB administrator:
+-- service_role has EXECUTE on server RPCs, not direct SELECT grants on these tables.
+-- Earlier assertions independently verify browser-role read/write isolation and
+-- service_role RPC execution permissions.
+RESET ROLE;
 DO $$
 DECLARE
   p public.projects;
