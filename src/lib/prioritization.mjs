@@ -42,6 +42,9 @@ export function evaluateProject(p,{today,phaseStates=[],focusIds=[]}={}){
   score,factors,blocked,suggestedPriority,priorityChange:suggestedPriority!==p.priority,
   confidence:!p.deadline_date||!p.next_action?'limited':'contextual',source:ENGINE_VERSION};
 }
+/** @param {any[]} projects
+ * @param {{today?:string,phases?:any[],focusIds?:string[],capacity?:number}} [context]
+ */
 export function prioritizePortfolio(projects,{today,phases=[],focusIds=[],capacity=3}={}){
  if(!Array.isArray(projects)||!Array.isArray(phases)||!Array.isArray(focusIds)
    ||!Number.isInteger(capacity)||capacity<1||capacity>3||new Set(focusIds).size!==focusIds.length)
@@ -51,7 +54,7 @@ export function prioritizePortfolio(projects,{today,phases=[],focusIds=[],capaci
   states.get(p.project_id).push(p.state);
  }
  const ranked=projects.map(p=>evaluateProject(p,{today,phaseStates:states.get(p.id)||[],focusIds}))
-   .filter(Boolean).sort((a,b)=>b.score-a.score||a.title.localeCompare(b.title)||a.id.localeCompare(b.id));
+   .filter(r=>r!==null).sort((a,b)=>b.score-a.score||a.title.localeCompare(b.title)||a.id.localeCompare(b.id));
  const available=Math.max(0,capacity-focusIds.length);
  const focusSuggestions=ranked.filter(r=>!r.blocked&&!focusIds.includes(r.id)
    &&r.score>=18&&['active','planned','inbox'].includes(r.lifecycle)).slice(0,available)
