@@ -26,3 +26,10 @@ test('sorting never alters manual rank',()=>{
  const p=[{id:'b',title:'Zulu',priority:'P3',manual_rank:1},{id:'a',title:'Alpha',priority:'P1',manual_rank:2}];
  assert.deepEqual(orderProjects(p,'priority').map(x=>x.id),['a','b']);assert.deepEqual(orderProjects(p,'manual').map(x=>x.id),['b','a']);assert.equal(p[0].manual_rank,1);
 });
+
+test('weekly focus uses Berlin calendar boundaries including DST',()=>{
+ assert.equal(weekStart(new Date('2026-10-11T22:30:00Z')),'2026-10-12'); // 00:30 Monday CEST
+ assert.equal(weekStart(new Date('2026-10-25T23:30:00Z')),'2026-10-26'); // 00:30 Monday CET
+ assert.equal(weekStart(new Date('2026-10-11T21:30:00Z')),'2026-10-05'); // 23:30 Sunday CEST
+ assert.equal(weekStart(new Date('2026-10-11T22:30:00Z'),'UTC'),'2026-10-05');
+});
