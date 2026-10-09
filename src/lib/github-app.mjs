@@ -23,7 +23,8 @@ export async function installationToken(env=process.env){
  return data.token;
 }
 export function githubRepoUrl(name,path){
- if(typeof name!=='string'||!/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(name)
+ const segments=typeof name==='string'?name.split('/'):[];
+ if(segments.length!==2 || segments.some(part=>! /^[A-Za-z0-9_.-]+$/.test(part)||!/[A-Za-z0-9]/.test(part))
     ||!['pulls','actions/runs'].includes(path))throw Error('Invalid GitHub resource');
  return 'https://api.github.com/repos/'+name.split('/').map(encodeURIComponent).join('/')+'/'+path+'?per_page=25&state=open';
 }

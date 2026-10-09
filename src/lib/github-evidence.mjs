@@ -3,7 +3,7 @@ import {createHmac,timingSafeEqual} from 'node:crypto';
 const sha40 = /^[a-f0-9]{40}$/;
 const maxPayload = 512*1024;
 export function verifyWebhook(secret,raw,signature) {
-  if(!secret||typeof signature!=='string'||!/^sha256=[a-f0-9]{64}$/i.test(signature))
+  if(!secret||typeof signature!=='string'||!/^sha256=[a-f0-9]{64}$/.test(signature))
     return false;
   const expected=createHmac('sha256',secret).update(raw).digest();
   const provided=Buffer.from(signature.slice(7),'hex');
