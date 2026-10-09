@@ -66,7 +66,7 @@ RESET ROLE;
 -- Live PostgreSQL regression: archived projects must not remain in focus,
 -- whether archived via a lifecycle update or through the archive action.
 SET ROLE service_role;
-DO $
+DO $$
 DECLARE
   p public.projects;
   changed public.projects;
@@ -110,6 +110,6 @@ BEGIN
     END;
     IF NOT rejected THEN RAISE EXCEPTION 'archived project reinserted in focus'; END IF;
   END LOOP;
-END $;
+END $$;
 RESET ROLE;
 SELECT 'PASS: ephemeral PostgreSQL RLS, owner isolation, service-only mutation, audited write, stale conflict, focus cap, archive-focus eviction' AS qualification;
