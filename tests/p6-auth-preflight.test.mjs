@@ -10,7 +10,10 @@ test('real two-account suite requires independent sessions and disposable hostna
  assert.match(suite,/getByRole\('navigation'/);
  assert.match(suite,/other\.json\(\)/);
 });
-test('real browser suite checks cookie revocation and audited fixture cleanup',()=>{
- assert.match(suite,/await b\.clearCookies\(\)/);
+test('real browser suite checks UI sign-out, owner isolation, durable race and audited cleanup',()=>{
+ assert.match(suite,/getByRole\('button',\{name:\/Sign out\/\}\)\.click\(\)/);
+ assert.match(suite,/b\.request\.get\('\/api\/projects'\)/);
+ assert.match(suite,/conflicts\.length\)\.toBe\(1\)/);
+ assert.match(suite,/persisted\.version\)\.toBe\(project\.version\)/);
  assert.match(suite,/expect\(cleaned\.ok\(\)\)\.toBe\(true\)/);
 });

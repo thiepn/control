@@ -1,0 +1,93 @@
+name: P7 Staging Evidence and Release Gate Checks
+on:
+  push:
+    branches: ['feat/p7-staging-evidence-gates']
+  pull_request:
+    paths: ['src/**','db/**','tests/**','scripts/p7-*','.github/workflows/p7-qualification.yml','docs/15-p7-acceptance.md','playwright*.mjs']
+permissions:
+  contents: read
+env:
+  CONTROL_P7_EXPECTED_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+jobs:
+  application:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+  postgres:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: P0-P7 isolated PostgreSQL, RLS and actual concurrent writes
+        run: |
+          set -euo pipefail
+          sudo systemctl start postgresql.service
+          sudo -u postgres createdb control_p6_test
+          cat tests/sql/bootstrap.sql db/schema.sql db/p1-app.sql db/p2-progress.sql db/p3-github.sql db/p4-recommendations.sql db/p5-reviews.sql db/p7-device-receipts.sql tests/sql/qualify.sql tests/sql/qualify-candidates.sql tests/sql/p2-qualify.sql tests/sql/p3-qualify.sql tests/sql/p4-qualify.sql tests/sql/p5-qualify.sql tests/sql/p7-qualify.sql | sudo -u postgres psql -d control_p6_test -v ON_ERROR_STOP=1
+          node scripts/p6-concurrency.mjs
+      - run: echo "Local PostgreSQL only; real Supabase Auth remains untested."
+  browser-fixture:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - name: Install pinned isolated Playwright
+        run: npm install --no-save --no-package-lock @playwright/test@1.56.1
+      - run: npx playwright install --with-deps chromium
+      - name: Desktop/mobile Chromium evidence, recovery and accessibility smoke
+        run: npx playwright test --config=playwright.config.mjs
+      - name: Upload synthetic-only browser records
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p7-synthetic-browser-evidence
+          path: test-results/
+          retention-days: 7
+          if-no-files-found: warn
+  release-rehearsal:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+      - name: Generate unsigned exact-head and operator-gated review artifact
+        run: node scripts/p7-rehearsal.mjs create
+      - name: Independent SHA256 verification and source identity check
+        run: |
+          set -euo pipefail
+          (cd release-evidence/p7 && sha256sum -c SHA256SUMS)
+          node scripts/p7-rehearsal.mjs verify
+      - name: Upload nondeploying review candidate
+        uses: actions/upload-artifact@v4
+        with:
+          name: p7-review-only-release-candidate
+          path: release-evidence/p7/
+          retention-days: 7
