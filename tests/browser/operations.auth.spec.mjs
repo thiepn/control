@@ -38,8 +38,31 @@ test('two independently authenticated browser accounts and revocation',async({br
   expect(ownerAudit.ok()).toBe(true);expect(otherAudit.ok()).toBe(true);
   expect((await ownerAudit.json()).entries.length).toBeGreaterThan(0);
   expect((await otherAudit.json()).entries.length).toBe(0);
-  await b.clearCookies();
-  await pb.reload();
+  // Same owner, two real browser contexts: two writes with the same expected version
+  // must have exactly one persisted winner and one stale conflict.
+  const secondDevice=await browser.newContext({
+   baseURL,storageState:process.env.CONTROL_P6_USER_A_STORAGE});
+  try{
+   const version=project.version;
+   const outcomes=await Promise.all(['Physical-device-A','Physical-device-B'].map((next_action,i)=>
+    (i===0?a:secondDevice).request.patch('/api/projects/'+project.id,{
+     headers:{Origin:baseURL,'Sec-Fetch-Site':'same-origin','If-Match':String(version)},
+     data:{next_action}
+    })));
+   const passed=outcomes.filter(x=>x.status()===200),conflicts=outcomes.filter(x=>x.status()===409);
+   expect(passed.length).toBe(1);expect(conflicts.length).toBe(1);
+   project=(await passed[0].json()).item;
+   expect(project.version).toBe(version+1);
+   const check=await a.request.get('/api/projects');
+   expect(check.ok()).toBe(true);
+   const persisted=(await check.json()).items.find(x=>x.id===project.id);
+   expect(persisted.version).toBe(project.version);
+   expect(persisted.next_action).toBe(project.next_action);
+  }finally{await secondDevice.close();}
+  // Genuine Auth logout from user B; clearing cookies alone is not a server revocation test.
+  await pb.getByRole('button',{name:/Sign out/}).click();
+  await pb.waitForLoadState('networkidle');
+
   await expect(pb.getByRole('navigation',{name:'Main navigation'})).toHaveCount(0);
   expect((await b.request.get('/api/projects')).status()).toBe(401);
  }finally{
