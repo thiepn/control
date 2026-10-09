@@ -63,4 +63,53 @@ BEGIN
  THEN RAISE EXCEPTION 'anonymous browser access granted'; END IF;
 END $$;
 RESET ROLE;
-SELECT 'PASS: ephemeral PostgreSQL RLS, owner isolation, service-only mutation, audited write, stale conflict, focus cap' AS qualification;
+-- Live PostgreSQL regression: archived projects must not remain in focus,
+-- whether archived via a lifecycle update or through the archive action.
+SET ROLE service_role;
+DO $
+DECLARE
+  p public.projects;
+  changed public.projects;
+  rejected boolean;
+  action_name text;
+  i integer := 0;
+BEGIN
+  FOREACH action_name IN ARRAY ARRAY['update','archive'] LOOP
+    i := i + 1;
+    SELECT * INTO p FROM public.control_mutate_project(
+      '11111111-1111-4111-8111-111111111111', 'create', NULL,
+      jsonb_build_object('title','Archive focus test ' || i,'slug','archive-focus-' || i), NULL
+    );
+    PERFORM public.control_replace_focus(
+      '11111111-1111-4111-8111-111111111111', '2026-10-05', ARRAY[p.id]
+    );
+    IF NOT EXISTS (SELECT 1 FROM public.focus_items
+                   WHERE owner_id=p.owner_id AND project_id=p.id) THEN
+      RAISE EXCEPTION 'precondition: focus not assigned';
+    END IF;
+    SELECT * INTO changed FROM public.control_mutate_project(
+      p.owner_id, action_name, p.id,
+      CASE WHEN action_name='update' THEN '{"lifecycle":"archived"}'::jsonb ELSE '{}'::jsonb END,
+      p.version
+    );
+    IF changed.lifecycle <> 'archived' OR EXISTS
+      (SELECT 1 FROM public.focus_items WHERE owner_id=p.owner_id AND project_id=p.id) THEN
+      RAISE EXCEPTION 'archived project remains in focus via %', action_name;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM public.audit_log
+      WHERE owner_id=p.owner_id AND project_id=p.id AND actor='system'
+        AND action='focus.remove_archived') THEN
+      RAISE EXCEPTION 'focus eviction was not audited via %', action_name;
+    END IF;
+    rejected := false;
+    BEGIN
+      PERFORM public.control_replace_focus(
+        p.owner_id, '2026-10-05', ARRAY[p.id]
+      );
+    EXCEPTION WHEN SQLSTATE '42501' THEN rejected := true;
+    END;
+    IF NOT rejected THEN RAISE EXCEPTION 'archived project reinserted in focus'; END IF;
+  END LOOP;
+END $;
+RESET ROLE;
+SELECT 'PASS: ephemeral PostgreSQL RLS, owner isolation, service-only mutation, audited write, stale conflict, focus cap, archive-focus eviction' AS qualification;
