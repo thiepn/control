@@ -1,5 +1,6 @@
 import { requireOwner,json,fail,sameOrigin } from '@/lib/http';
 export async function POST(req:Request,{params}:{params:Promise<{id:string}>}){
+ if(!sameOrigin(req))return json({error:'Forbidden origin'},403);
  const auth=await requireOwner();if(!auth)return json({error:'Unauthorized'},401);
  const {id}=await params; if(!/^[a-f0-9-]{36}$/i.test(id))return json({error:'Invalid ID'},400);
  let direction;try{direction=(await req.json()).direction;}catch{return json({error:'Invalid JSON'},400);}
