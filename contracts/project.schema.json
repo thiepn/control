@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://projects.thiepn.dev/contracts/project.schema.json",
+  "title": "Project Portfolio Record (API read model)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id","title","lifecycle","priority","manual_rank","deadline","completion","release_readiness","repositories"],
+  "properties": {
+    "id": {"type":"string","format":"uuid"},
+    "title": {"type":"string","minLength":1,"maxLength":160},
+    "lifecycle": {"enum":["inbox","planned","active","waiting","paused","completed","archived"]},
+    "priority": {"enum":["P0","P1","P2","P3",null]},
+    "manual_rank": {"type":["number","null"]},
+    "deadline": {"oneOf":[{"type":"null"},{"type":"object","required":["date","kind"],"additionalProperties":false,"properties":{"date":{"type":"string","format":"date"},"kind":{"enum":["hard","target"]}}}]},
+    "completion": {"type":"object","required":["value","confidence","target_id"],"additionalProperties":false,"properties":{"value":{"type":["number","null"],"minimum":0,"maximum":100},"confidence":{"enum":["unassessed","user_reported","ai_estimate","verified"]},"target_id":{"type":["string","null"]}}},
+    "release_readiness": {"enum":["not_assessed","blocked","awaiting_verification","awaiting_human_approval","qualified","released"]},
+    "repositories": {"type":"array","uniqueItems":true,"items":{"type":"string","pattern":"^[^/]+/[^/]+$"}},
+    "next_action": {"type":["string","null"]},
+    "last_evidence_at": {"type":["string","null"],"format":"date-time"},
+    "phase": {"type":["string","null"]}
+  }
+}

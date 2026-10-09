@@ -1,0 +1,29 @@
+name: P1 Ephemeral PostgreSQL RLS
+on:
+  push:
+    branches: ['feat/p1-core-portfolio']
+    paths: ['db/**', 'tests/sql/**', '.github/workflows/p1-postgres.yml']
+  pull_request:
+    paths: ['db/**', 'tests/sql/**', '.github/workflows/p1-postgres.yml']
+permissions:
+  contents: read
+jobs:
+  real-postgres-rls:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Start runner-local disposable PostgreSQL
+        run: |
+          set -euo pipefail
+          sudo systemctl start postgresql.service
+          sudo -u postgres createdb control_ephemeral
+          sudo -u postgres psql -d control_ephemeral -Atqc 'SHOW server_version'
+      - name: Run actual PostgreSQL security and transaction assertions
+        run: |
+          set -euo pipefail
+          cat tests/sql/bootstrap.sql db/schema.sql db/p1-app.sql tests/sql/qualify.sql tests/sql/qualify-candidates.sql | \
+            sudo -u postgres psql -d control_ephemeral -v ON_ERROR_STOP=1
+      - name: Clearly delimit scope
+        run: |
+          echo "This tests actual PostgreSQL RLS in a temporary GitHub runner database."
+          echo "The separate Supabase two-user authenticated gate remains mandatory."

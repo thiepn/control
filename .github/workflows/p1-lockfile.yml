@@ -1,0 +1,24 @@
+name: P1 Lockfile Preparation
+on:
+  push:
+    branches: ['feat/p1-core-portfolio']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Resolve pinned package lock without install scripts
+        run: npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+      - name: Validate manifest unchanged
+        run: git diff --exit-code -- package.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: p1-npm-lock
+          path: package-lock.json
+          if-no-files-found: error

@@ -1,0 +1,31 @@
+name: P1 Qualification
+on:
+  push:
+    branches: ['feat/p1-core-portfolio']
+  pull_request:
+    paths: ['src/**', 'db/**', 'tests/**', 'package.json', 'package-lock.json', 'tsconfig.json', 'next.config.ts', '.github/workflows/p1-qualification.yml']
+permissions:
+  contents: read
+jobs:
+  qualification:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Locked dependency install (mandatory)
+        run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+      - name: Isolated two-user RLS qualification (mandatory)
+        env:
+          CONTROL_TEST_DISPOSABLE: ${{ secrets.CONTROL_TEST_DISPOSABLE }}
+          CONTROL_TEST_SUPABASE_URL: ${{ secrets.CONTROL_TEST_SUPABASE_URL }}
+          CONTROL_TEST_PUBLISHABLE_KEY: ${{ secrets.CONTROL_TEST_PUBLISHABLE_KEY }}
+          CONTROL_TEST_SERVICE_KEY: ${{ secrets.CONTROL_TEST_SERVICE_KEY }}
+          CONTROL_TEST_USER_A_JWT: ${{ secrets.CONTROL_TEST_USER_A_JWT }}
+          CONTROL_TEST_USER_B_JWT: ${{ secrets.CONTROL_TEST_USER_B_JWT }}
+        run: node tests/p1-live-rls.mjs
