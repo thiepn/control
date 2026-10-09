@@ -37,6 +37,8 @@ BEGIN
    (p_payload->>'deadline_date')::date,p_payload->>'deadline_kind',p_payload->>'next_action') RETURNING * INTO result;
  ELSIF p_action IN ('update','archive') THEN
   IF p_id IS NULL OR p_version IS NULL THEN RAISE EXCEPTION 'Version required' USING ERRCODE='22023'; END IF;
+  -- Serialize lifecycle changes with all weekly focus mutations for the owner.
+  PERFORM pg_advisory_xact_lock(hashtextextended(p_owner::text,11));
   SELECT * INTO before_row FROM public.projects WHERE owner_id=p_owner AND id=p_id FOR UPDATE;
   IF NOT FOUND OR before_row.version<>p_version THEN RAISE EXCEPTION 'Conflict or record unavailable' USING ERRCODE='P0002'; END IF;
   IF p_action='archive' THEN
@@ -57,6 +59,14 @@ BEGIN
    WHERE owner_id=p_owner AND id=p_id RETURNING * INTO result;
   END IF;
  ELSE RAISE EXCEPTION 'Unknown action' USING ERRCODE='22023'; END IF;
+ -- An archived project cannot occupy a weekly focus slot. Clear all weeks atomically.
+ IF result.lifecycle='archived' THEN
+  DELETE FROM public.focus_items WHERE owner_id=p_owner AND project_id=result.id;
+  IF FOUND THEN
+   INSERT INTO public.audit_log(owner_id,project_id,actor,action,new_data)
+   VALUES(p_owner,result.id,'system','focus.remove_archived',jsonb_build_object('reason','project_archived'));
+  END IF;
+ END IF;
  INSERT INTO public.audit_log(owner_id,project_id,actor,action,previous_data,new_data)
  VALUES(p_owner,result.id,'user','project.'||p_action,CASE WHEN p_action='create' THEN NULL ELSE to_jsonb(before_row) END,to_jsonb(result));
  RETURN result;
@@ -97,6 +107,8 @@ BEGIN
  THEN RAISE EXCEPTION 'Invalid focus plan' USING ERRCODE='22023'; END IF;
  IF (SELECT count(DISTINCT id) FROM unnest(p_projects) as ids(id))<>project_count
  THEN RAISE EXCEPTION 'Duplicate focus project' USING ERRCODE='22023'; END IF;
+ -- Acquire the same owner lock as archive/edit before validating project eligibility.
+ PERFORM pg_advisory_xact_lock(hashtextextended(p_owner::text,11));
  IF (SELECT count(*) FROM public.projects WHERE owner_id=p_owner AND id=ANY(p_projects) AND lifecycle<>'archived')<>project_count
  THEN RAISE EXCEPTION 'Unknown focus project' USING ERRCODE='42501'; END IF;
  PERFORM pg_advisory_xact_lock(hashtextextended(p_owner::text||p_week::text,12));
