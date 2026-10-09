@@ -21,7 +21,7 @@ jobs:
       - name: Run actual PostgreSQL security and transaction assertions
         run: |
           set -euo pipefail
-          cat tests/sql/bootstrap.sql db/schema.sql db/p1-app.sql tests/sql/qualify.sql | \
+          cat tests/sql/bootstrap.sql db/schema.sql db/p1-app.sql tests/sql/qualify.sql tests/sql/qualify-candidates.sql | \
             sudo -u postgres psql -d control_ephemeral -v ON_ERROR_STOP=1
       - name: Clearly delimit scope
         run: |
