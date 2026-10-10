@@ -94,6 +94,18 @@ export default function ReleaseReadinessPanel(){
     <li><strong>Postrelease rollback hold</strong><span>HOLD — independent human rollback approval not collected</span></li>
    </ul>
    <p className="p8-warning" role="note">P15 RELEASE — DENIED: 28 external prerequisites open; freeze remains HOLD. No real cutover, rollback or deployment.</p>
+   <div className="section-label"><strong>P16 — REVOCATION QUARANTINE &amp; GENUINE ACCEPTANCE</strong><span>NO HUMAN EVIDENCE</span></div>
+   <p className="note">Withdrawn consent and compromised signing keys require independent reissue and human review. Source hashes, signatures and runner-local restored bytes cannot certify actual physical devices, owner rights, external production images or genuine Supabase restoration.</p>
+   <ul className="p16-gates" aria-label="P16 real-world acceptance and quarantine release blockers">
+    <li><strong>Consent withdrawal quarantine</strong><span>Real subject consent, revoked records and independent custodian reissue OPEN</span></li>
+    <li><strong>Original object and rights witnesses</strong><span>Real source ownership and privacy approval NOT COLLECTED</span></li>
+    <li><strong>Physical Android and iOS</strong><span>Independent actual-device witness approval NOT COLLECTED</span></li>
+    <li><strong>NVDA and VoiceOver</strong><span>Two genuine screen-reader signoffs NOT COLLECTED</span></li>
+    <li><strong>Disposably authorized original-byte restore</strong><span>Real independent Supabase backup and restore NOT PERFORMED</span></li>
+    <li><strong>Outside-organization production image</strong><span>Actual separate-governance signer and image verification OPEN</span></li>
+    <li><strong>Precutover and postrelease operators</strong><span>HOLD — distinct human authorizations and rollback consent missing</span></li>
+   </ul>
+   <p className="p8-warning" role="note">P16 RELEASE — DENIED: 34 independent prerequisites OPEN. No cutover, production restore, rollback or deployment.</p>
    <p className="p8-warning">Release status: NOT AUTHORIZED · No automatic merge, migration, rollback or deployment</p>
  </section>;
 }
