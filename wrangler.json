@@ -13,7 +13,7 @@
     {
       "binding": "DB",
       "database_name": "thiepn-control",
-      "database_id": "00000000-0000-0000-0000-000000000000",
+      "database_id": "0ff32e52-8781-44f7-bd48-42718dfa9451",
       "migrations_dir": "migrations"
     }
   ]
