@@ -32,7 +32,7 @@ export default function ReleaseReadinessPanel(){
     count+' self-reported receipt(s), zero automatically accepted as release approval.'}
    </p>
    <div className="section-label"><strong>OFFLINE CUSTODY &amp; RESTORE</strong><span>P9 REVIEW ONLY</span></div>
-   <ul className="p8-gates">
+   <ul className="p9-gates">
     <li><strong>Exact-head source manifest</strong><span>Automated qualification only — no release certificate</span></li>
     <li><strong>Independent signed custody</strong><span>Open — external operator key and pinned ledger checkpoint required</span></li>
     <li><strong>Reversible backup / restore</strong><span>Runner-local synthetic PostgreSQL only; real disposable staging open</span></li>
