@@ -21,7 +21,9 @@ export default function ProgressWorkspace({projects,onChange}:{projects:Project[
  const act=async(action:string,payload:Record<string,unknown>)=>{
   setBusy(true);setMessage('');
   try{const r=await fetch('/api/progress',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({project_id:project,action,payload})});
-   const data=await r.json();if(!r.ok)throw Error(data.error||'Action failed');await reload();await onChange?.();setMessage('Saved');}
+   const data=await r.json();if(!r.ok)throw Error(data.error||'Action failed');
+   try{await reload();await onChange?.();setMessage('Saved');}
+   catch{setMessage('Saved to the database, but the refreshed dashboard could not be loaded. Reconnect to verify.');}}
   catch(e){setMessage(e instanceof Error?e.message:'Action failed');}finally{setBusy(false)}
  };
  return <section aria-label="Progress workspace">
