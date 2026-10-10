@@ -20,8 +20,12 @@ export function normalizeDiscoveredRepository(repo,owner,source){
  return {id:repo.id,full_name:repo.full_name,visibility:repo.private?'private':repo.visibility==='internal'?'internal':'public',
   archived:repo.archived===true};
 }
+/** @param {any} input
+ * @param {{fetchImpl?:typeof fetch,installationToken?:()=>Promise<string>}} [deps]
+ */
 export async function discoverGithubPage(input,{fetchImpl=fetch,installationToken}={}){
  const {owner,source,page}=parseDiscoveryQuery(input);
+ /** @type {Record<string,string>} */
  const headers={Accept:'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'};
  if(source==='installation'){
   if(typeof installationToken!=='function')throw Error('GitHub App unavailable');
