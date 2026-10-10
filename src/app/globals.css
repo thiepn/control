@@ -64,3 +64,11 @@
 .ops-pages{margin:17px 0 30px}.ops-pages span{font-size:12px;color:var(--muted)}
 @media(max-width:900px){.ops-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.ops-audit>details>summary{grid-template-columns:125px 1fr;gap:7px}.ops-audit>details>summary strong{grid-column:1/-1;padding-left:20px}.ops-audit>details>summary small{grid-column:2}.ops-audit>details>summary time{padding-left:16px}}
 @media(max-width:520px){.ops-diagnostics{grid-template-columns:1fr}.ops-metric{padding:14px 11px}.ops-review-locked dl{grid-template-columns:1fr;gap:3px}.ops-review-locked dd{margin-bottom:10px}.ops-actions button{flex:1}.ops-audit>details>summary{grid-template-columns:1fr}.ops-audit>details>summary time,.ops-audit>details>summary strong,.ops-audit>details>summary small{grid-column:1;padding-left:14px}.ops-audit>details>summary span{padding-left:14px}}
+
+/* C1: the recorded next action is the primary command, not a dashboard KPI. */
+.command-next{display:flex;justify-content:space-between;gap:20px;align-items:center;border:1px solid var(--line);border-left:4px solid var(--accent);background:var(--white);padding:22px 25px}
+.command-next h2{font:600 clamp(23px,3vw,34px) 'Space Grotesk';letter-spacing:-.04em;margin:0 0 8px}
+.command-next p{margin:0 0 12px;font-size:15px;line-height:1.5;white-space:pre-wrap}
+.command-next small{font-size:11px;color:var(--muted)}
+.command-next button{white-space:nowrap}
+@media(max-width:700px){.command-next{display:grid;padding:18px}.command-next button{width:100%}}
