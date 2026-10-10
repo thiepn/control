@@ -32,7 +32,11 @@ export async function observe(db,s){
  if((prior?.revision??0)!==expected)return {status:'conflict'};
  const sql='INSERT INTO source_observations (repo_url,fingerprint,source_url,default_branch,main_sha,latest_pr_number,latest_pr_head,latest_ci_id,latest_ci_conclusion,last_pushed_at,refresh_run_id,revision) VALUES (?,?,?,?,?,?,?,?,?,?,?,1) ON CONFLICT(repo_url) DO UPDATE SET fingerprint=excluded.fingerprint,source_url=excluded.source_url,default_branch=excluded.default_branch,main_sha=excluded.main_sha,latest_pr_number=excluded.latest_pr_number,latest_pr_head=excluded.latest_pr_head,latest_ci_id=excluded.latest_ci_id,latest_ci_conclusion=excluded.latest_ci_conclusion,last_pushed_at=excluded.last_pushed_at,last_checked_at=CURRENT_TIMESTAMP,refresh_run_id=excluded.refresh_run_id,revision=CASE WHEN source_observations.fingerprint=excluded.fingerprint THEN source_observations.revision ELSE source_observations.revision+1 END WHERE source_observations.revision=?';
  const x=await db.prepare(sql).bind(s.repo_url,fingerprint,s.source_url,s.default_branch||null,s.main_sha||null,s.latest_pr_number||null,s.latest_pr_head||null,s.latest_ci_id||null,s.latest_ci_conclusion||null,s.last_pushed_at||null,run,expected).run();
- return x.meta?.changes!==1?{status:'conflict'}:{status:!prior?'new':prior.fingerprint===fingerprint?'unchanged':'changed',revision:prior?.fingerprint===fingerprint?expected:expected+1};
+ // D1 UPSERT change metadata alone does not prove whether the new fingerprint persisted.
+ const saved=await db.prepare('SELECT revision,fingerprint FROM source_observations WHERE repo_url=?').bind(s.repo_url).first();
+ const nextRevision=expected+(prior?.fingerprint===fingerprint?0:1);
+ if(!saved||saved.revision!==nextRevision||saved.fingerprint!==fingerprint)return {status:'conflict'};
+ return {status:!prior?'new':prior.fingerprint===fingerprint?'unchanged':'changed',revision:nextRevision};
 }
 export async function reviseReview(db,s){
  rev(s.expected_revision);runId(s.run_id);

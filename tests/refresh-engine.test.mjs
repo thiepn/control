@@ -20,6 +20,9 @@ test('same source is idempotent; stale revision conflicts, changed source advanc
  assert.equal((await observe(db,good)).status,'conflict');
  assert.equal((await observe(db,{...good,latest_ci_id:38094336762,expected_revision:1})).status,'changed');
  assert.deepEqual(events,['insert','change']);assert.equal(current.revision,2);
+ const zeroMetaDb={prepare(sql){return {bind(){return {first:async()=>({revision:1,fingerprint:observationFingerprint(good)}),run:async()=>({meta:{changes:0}})}}}}};
+ const result=await observe(zeroMetaDb,{...good,expected_revision:1});
+ assert.equal(result.status,'unchanged');
 });
 test('AI updates require exact review/focus revisions and cannot overwrite project priority or progress',async()=>{
  const queries=[];const db={prepare(sql){return {bind(...params){return {async run(){queries.push({sql,params});return {meta:{changes:params.at(-1)===0?1:0}}}}}}}};
