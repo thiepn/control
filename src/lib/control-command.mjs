@@ -50,3 +50,16 @@ export function commandSnapshot(projects,targets,phases,focusItems){
  const ranking=prioritizePortfolio(projects,{today:berlinDate(),phases,focusIds,capacity:3});
  return {summary,ranking,next:selectNextAction(projects,ranking.ranked,focusItems,phases)};
 }
+
+// When milestone/phase API is unavailable, never infer rank or clearance.
+// Only display the human's explicitly recorded weekly focus and known next action.
+export function focusWhenProgressUnavailable(projects,focusItems){
+ const projectsById=new Map(projects.map(p=>[p.id,p]));
+ for(const entry of [...focusItems].sort((a,b)=>a.slot-b.slot)){
+  const project=projectsById.get(entry.project_id);
+  if(project && ['inbox','planned','active'].includes(project.lifecycle))
+   return {summary:new Map(),next:{project,source:'focus_unverified',
+     action:project.next_action?.trim()||null},phaseUnavailable:true};
+ }
+ return {summary:new Map(),next:null,phaseUnavailable:true};
+}
