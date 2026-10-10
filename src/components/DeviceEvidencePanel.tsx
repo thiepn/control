@@ -64,7 +64,7 @@ export default function DeviceEvidencePanel(){
   <div className="p7-receipt-list">{items.map(v=><article key={v.id} className="p7-receipt">
     <strong>{types.find(([key])=>key===v.surface)?.[1]||v.surface}</strong>
     <span className="p7-unverified">Unverified — no approval</span>
-    <p>Head: <code>{v.source_sha.slice(0,12)}</code> · SHA256: <code>{v.evidence_sha256.slice(0,12)}</code></p>
+    <p>Head: <code>{typeof v.source_sha==='string'?v.source_sha.slice(0,12):'Unavailable'}</code> · SHA256: <code>{typeof v.evidence_sha256==='string'?v.evidence_sha256.slice(0,12):'Unavailable'}</code></p>
     <p>{v.observation}</p><small>Recorded {new Date(v.recorded_at).toLocaleDateString()}</small>
    </article>)}</div>
  </section>;
