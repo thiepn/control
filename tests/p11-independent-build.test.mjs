@@ -19,7 +19,7 @@ test('same runner, replay, changed SHA and altered binaries refuse strict cross-
   {...b,worker:'alpha'},
   {...b,release_authorized:true},
   {...b,production_key_used:true},
-  {...b,executable:{...b.executable,files:b.executable.files.map((x,i)=>i?x:{...x,sha256:binaryDigest('tamper')}}},
+  {...b,executable:{...b.executable,files:b.executable.files.map((x,i)=>i?x:{...x,sha256:binaryDigest('tamper')})}},
   {...b,executable:{...b.executable,source_sha:'c'.repeat(40)}}
  ])assert.throws(()=>compareIndependentWorkers(a,alt,source));
 });
