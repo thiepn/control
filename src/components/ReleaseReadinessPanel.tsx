@@ -72,6 +72,17 @@ export default function ReleaseReadinessPanel(){
     <li><strong>Independent organization builders</strong><span>Only synthetic CI signatures; production image signoff missing</span></li>
    </ul>
    <p className="p8-warning" role="note">P13 RELEASE — DENIED: 18 external prerequisites open; no merge, migration or deployment.</p>
+   <div className="section-label"><strong>P14 — HUMAN EVIDENCE RECONCILIATION</strong><span>GATES OPEN</span></div>
+   <p className="note">Source and signature consistency are not a substitute for direct human observation, rights-owner permission or independent operator control. Revoked and compromised signers must be requalified outside public CI.</p>
+   <ul className="p14-gates" aria-label="P14 independent external acceptance blockers">
+    <li><strong>Compromised signer containment</strong><span>Independent reissued custody and trust anchors not collected</span></li>
+    <li><strong>Physical accessibility and privacy</strong><span>Android, iOS, NVDA, VoiceOver and rights-owner review not collected</span></li>
+    <li><strong>Disposable recovery witness</strong><span>Real authorized Supabase backup and restore not performed</span></li>
+    <li><strong>Separately governed production build</strong><span>No outside-organization image custody or production signoff</span></li>
+    <li><strong>Pre-cutover operator decision</strong><span>DENY — manual release authorization missing</span></li>
+    <li><strong>Postrelease operator decision</strong><span>DENY — independent rollback and recovery approval missing</span></li>
+   </ul>
+   <p className="p8-warning" role="note">P14 RELEASE — DENIED: 22 human and external prerequisites remain open. No deployment, migration, merge or production rollback is authorized.</p>
    <p className="p8-warning">Release status: NOT AUTHORIZED · No automatic merge, migration, rollback or deployment</p>
  </section>;
 }
