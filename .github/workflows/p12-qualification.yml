@@ -1,0 +1,154 @@
+name: P12 External Acceptance Custody and Recovery Witness Qualification
+on:
+  push:
+    branches: ['feat/p12-external-acceptance-custody']
+  pull_request:
+    paths: ['src/**','tests/**','scripts/**','db/**','docs/20-p12-acceptance.md','.github/workflows/p12-qualification.yml','playwright*.mjs','next.config.ts']
+permissions:
+  contents: read
+env:
+  CONTROL_P12_EXPECTED_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+  CONTROL_P11_EXPECTED_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+  CONTROL_P10_EXPECTED_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+  CONTROL_P10_BUILD_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+  CONTROL_P9_EXPECTED_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+  NEXT_TELEMETRY_DISABLED: '1'
+jobs:
+  application:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-node@v4
+        with: {node-version: '22', cache: npm}
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+  local-postgres:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - name: P0-P7 owner RLS, real parallel writes, disposable actual dump/restore and corruption rejection
+        run: |
+          set -euo pipefail
+          sudo systemctl start postgresql.service
+          sudo -u postgres createdb control_p6_test
+          cat tests/sql/bootstrap.sql db/schema.sql db/p1-app.sql db/p2-progress.sql db/p3-github.sql db/p4-recommendations.sql db/p5-reviews.sql db/p7-device-receipts.sql tests/sql/qualify.sql tests/sql/qualify-candidates.sql tests/sql/p2-qualify.sql tests/sql/p3-qualify.sql tests/sql/p4-qualify.sql tests/sql/p5-qualify.sql tests/sql/p7-qualify.sql | sudo -u postgres psql -d control_p6_test -v ON_ERROR_STOP=1
+          node scripts/p6-concurrency.mjs
+          sudo -u postgres bash scripts/p9-local-restore.sh
+          sudo -u postgres bash scripts/p11-local-corruption.sh
+          sudo -u postgres bash scripts/p12-local-witness.sh
+  browser-fixture:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-node@v4
+        with: {node-version: '22', cache: npm}
+      - run: npm ci
+      - run: npm run build
+      - run: npm install --no-save --no-package-lock @playwright/test@1.56.1
+      - run: npx playwright install --with-deps chromium
+      - name: Real Chromium desktop/mobile with only intercepted synthetic API fixtures
+        run: npx playwright test --config=playwright.config.mjs
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p12-synthetic-chromium
+          path: test-results/
+          retention-days: 7
+          if-no-files-found: warn
+  source-denial:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-node@v4
+        with: {node-version: '22', cache: npm}
+      - run: npm ci
+      - name: Verify exact pristine tracked source and digest before Next build
+        run: |
+          set -euo pipefail
+          node scripts/p9-source-rehearsal.mjs create
+          (cd release-evidence/p9 && sha256sum --check SHA256SUMS)
+          node scripts/p9-source-rehearsal.mjs verify
+      - name: Prove all independent human and recovery authorizations remain denied
+        run: |
+          set -euo pipefail
+          node scripts/p11-default-denial.mjs
+          node scripts/p12-source-denial.mjs
+          node --input-type=module -e "import fs from 'node:fs';const v=JSON.parse(fs.readFileSync('release-evidence/p11/default-denial.json'));if(v.status!=='DENIED'||v.open_gates.length!==13||v.release_authorized!==false||v.human_signoff!=='NOT_COLLECTED')process.exit(1);"
+      - run: npm test
+      - uses: actions/upload-artifact@v4
+        with:
+          name: p12-source-and-denial
+          path: |
+            release-evidence/p9/
+            release-evidence/p11/default-denial.json
+            release-evidence/p12/closure.json
+          retention-days: 7
+          if-no-files-found: error
+  independent-build:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        worker: [alpha, beta]
+    env:
+      P11_BUILD_WORKER: ${{ matrix.worker }}
+      P11_SYNTHETIC_BUILD_ONLY: 'YES_NEVER_DEPLOY'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-node@v4
+        with: {node-version: '22', cache: npm}
+      - name: Derive PUBLIC, CI-ONLY test Server Action key from exact head (never production)
+        run: |
+          node --input-type=module <<'NODE' >> "$GITHUB_ENV"
+          import {createHash} from 'node:crypto';
+          if(process.env.P11_SYNTHETIC_BUILD_ONLY!=='YES_NEVER_DEPLOY')process.exit(2);
+          console.log('NEXT_SERVER_ACTIONS_ENCRYPTION_KEY='+createHash('sha256')
+            .update('THIEPN-CONTROL-P11-PUBLIC-SYNTHETIC-NONPRODUCTION-BUILD-KEY:')
+            .update(process.env.CONTROL_P11_EXPECTED_HEAD).digest('base64'));
+          NODE
+      - name: Fresh locked install and full Next executable build on independent GitHub runner
+        run: |
+          npm ci
+          npm run build
+          node scripts/p11-build-runner.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: p12-build-${{ matrix.worker }}
+          path: release-evidence/p11/build.json
+          retention-days: 7
+          if-no-files-found: error
+  independent-comparison:
+    needs: [independent-build]
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - uses: actions/download-artifact@v4
+        with: {name: p12-build-alpha, path: release-evidence/p11/alpha}
+      - uses: actions/download-artifact@v4
+        with: {name: p12-build-beta, path: release-evidence/p11/beta}
+      - name: Strict independent GitHub worker and 100% selected binary hash comparison
+        run: node scripts/p11-compare-runners.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: p12-independent-build-comparison
+          path: release-evidence/p11/verified/comparison.json
+          retention-days: 7
+          if-no-files-found: error

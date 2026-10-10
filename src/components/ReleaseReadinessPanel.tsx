@@ -54,6 +54,15 @@ export default function ReleaseReadinessPanel(){
     <li><strong>Disposable recovery</strong><span>Runner-local corruption refusal only; real authorized Supabase restore open</span></li>
     <li><strong>Independent operator closure</strong><span>DENIED — signed human decision and release permission not collected</span></li>
    </ul>
+   <div className="section-label"><strong>P12 — EXTERNAL ACCEPTANCE CUSTODY</strong><span>HUMAN ACCEPTANCE OPEN</span></div>
+   <p className="note">Verified source hashes, CI-only builders and synthetic reviewer signatures are not evidence that a human operated a physical device, approved rights or witnessed a real Supabase recovery. No operator release is authorized.</p>
+   <ul className="p12-gates" aria-label="P12 physical and independent witness release prerequisites">
+    <li><strong>Compromised or rotated signers</strong><span>External root and chronology pins not collected</span></li>
+    <li><strong>Device and accessibility witnesses</strong><span>Physical Android, iOS, NVDA and VoiceOver acceptance not collected</span></li>
+    <li><strong>Source, objects and rights</strong><span>Independent ownership, privacy and immutable object provenance open</span></li>
+    <li><strong>Recovery and separate-governance builds</strong><span>Only CI synthetic tests; real disposable restoration and outside builders open</span></li>
+   </ul>
+   <p className="p8-warning" role="note">P12 RELEASE — DENIED: 16 external prerequisites open; no publish, merge, migration or deployment approval.</p>
    <p className="p8-warning">Release status: NOT AUTHORIZED · No automatic merge, migration, rollback or deployment</p>
  </section>;
 }
