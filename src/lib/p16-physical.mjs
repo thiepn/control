@@ -21,6 +21,15 @@ export function prepareP16PhysicalCustody({handoffContext,witnessContext,
  const needed=['android_device','ios_device','screen_reader','source_rights','privacy_review'];
  if(!needed.every(k=>witness.categories_seen.includes(k)))
   throw Error('Independently signed metadata for each review class required');
+ const kindBySurface={android_chrome:'android_device',ios_safari:'ios_device',
+  nvda:'screen_reader',voiceover:'screen_reader',
+  rights_provenance:'source_rights',privacy_review:'privacy_review'};
+ for(const request of handoffContext.records){
+  const matches=witnessContext.entries.filter(x=>x.record?.kind===kindBySurface[request.surface]);
+  if(matches.length!==1||!['rights_sha256','object_sha256','evidence_sha256'].every(
+   key=>matches[0].record[key]===request[key]))
+   throw Error('Cross-source original object, rights or witness evidence digest mismatch');
+ }
  // Screen-reader claims are not evidence of BOTH NVDA and VoiceOver hardware.
  return {schema:'control-p16-physical-custody-v1',
   source_sha:expectedSourceSha,review_requests:handoff.requested,
