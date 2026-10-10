@@ -149,3 +149,10 @@
 .p16-gates strong{font-size:12px;line-height:1.4}
 .p16-gates span{font-size:11px;color:#8a493b;line-height:1.5}
 @media(max-width:540px){.p16-gates{grid-template-columns:1fr}}
+
+/* P17 source-only original evidence + frozen-candidate posture. */
+.p17-gates{list-style:none;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));padding:0;margin:15px 0;gap:1px;background:var(--line);border:1px solid var(--line)}
+.p17-gates li{background:var(--white);padding:16px;min-width:0;display:grid;gap:8px}
+.p17-gates strong{font-size:12px;line-height:1.4}
+.p17-gates span{font-size:11px;color:#8a493b;line-height:1.5}
+@media(max-width:540px){.p17-gates{grid-template-columns:1fr}}

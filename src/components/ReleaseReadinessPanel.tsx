@@ -106,6 +106,18 @@ export default function ReleaseReadinessPanel(){
     <li><strong>Precutover and postrelease operators</strong><span>HOLD — distinct human authorizations and rollback consent missing</span></li>
    </ul>
    <p className="p8-warning" role="note">P16 RELEASE — DENIED: 34 independent prerequisites OPEN. No cutover, production restore, rollback or deployment.</p>
+   <div className="section-label"><strong>P17 — FROZEN CANDIDATE &amp; INDEPENDENT WITNESSES</strong><span>NOT ACCEPTED</span></div>
+   <p className="note">Six original evidence claims, externally rotated signing keys and release-candidate image hashes can establish metadata continuity only. Without independently witnessed people, original hardware and genuine service restoration, the candidate remains FROZEN and DENIED.</p>
+   <ul className="p17-gates" aria-label="P17 frozen candidate external release blockers">
+    <li><strong>Consent and original rights adjudication</strong><span>Original person, owner licensing and withdrawal acceptance NOT COLLECTED</span></li>
+    <li><strong>Physical Android and iOS originals</strong><span>Actual witnessed phone/browser acceptance NOT COLLECTED</span></li>
+    <li><strong>NVDA and VoiceOver originals</strong><span>Independent screen-reader recordings and review NOT COLLECTED</span></li>
+    <li><strong>Compromised signer replacement</strong><span>Externally governed reissue and new independent keys NOT COLLECTED</span></li>
+    <li><strong>Authorized disposable recovery</strong><span>Genuine original-byte Supabase backup, restore and witness NOT COLLECTED</span></li>
+    <li><strong>Frozen production image custody</strong><span>Outside-organization image reproduction and signing NOT COLLECTED</span></li>
+    <li><strong>Independent release and postrelease</strong><span>Cutover HOLD; postrelease rollback HOLD; no operator approval</span></li>
+   </ul>
+   <p className="p8-warning" role="note">P17 RELEASE — DENIED: 42 external prerequisites OPEN. Candidate FROZEN; no production deployment, migration, rollback or publication.</p>
    <p className="p8-warning">Release status: NOT AUTHORIZED · No automatic merge, migration, rollback or deployment</p>
  </section>;
 }
