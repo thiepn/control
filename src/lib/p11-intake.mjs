@@ -3,13 +3,16 @@ import {REQUIRED_GATES} from './p7-release.mjs';
 import {auditTrustEpochs} from './p11-trust.mjs';
 import {assessHumanEvidence} from './p10-evidence.mjs';
 const SHA=/^[a-f0-9]{40}$/,HASH=/^[a-f0-9]{64}$/;
-export function auditOperatorPacket({packet,trust,now}){
+export function auditOperatorPacket({packet,trust,now,expectedSourceSha,expectedArtifactSha}){
  if(!packet||packet.schema!=='control-p11-operator-packet-v1'
   ||!SHA.test(packet.source_sha||'')||!HASH.test(packet.artifact_sha256||'')
   ||!HASH.test(packet.external_custody_anchor_sha256||'')
   ||!Array.isArray(packet.records)||packet.records.length>REQUIRED_GATES.length
   ||packet.classification!=='external_metadata_only')
   throw Error('Malformed or untrusted operator packet');
+ if(!SHA.test(expectedSourceSha||'')||!HASH.test(expectedArtifactSha||'')
+  ||packet.source_sha!==expectedSourceSha||packet.artifact_sha256!==expectedArtifactSha)
+  throw Error('Independently expected source/artifact digest mismatch');
  const acceptedTrust=auditTrustEpochs({...trust,now});
  if(acceptedTrust.head_sha256!==packet.external_custody_anchor_sha256)
   throw Error('Custody head is not independently pinned to operator packet');

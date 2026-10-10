@@ -15,7 +15,7 @@ function fixture(){
  const packet={schema:'control-p11-operator-packet-v1',source_sha:SHA,
   artifact_sha256:ART,external_custody_anchor_sha256:trust.pinnedHeadSha256,
   classification:'external_metadata_only',records:[{record,signature}]};
- return {packet,trust,now};
+ return {packet,trust,now,expectedSourceSha:SHA,expectedArtifactSha:ART};
 }
 test('externally signed synthetic reviewer can audit metadata but never confer physical approval',()=>{
  const r=auditOperatorPacket(fixture());
@@ -32,6 +32,8 @@ test('old revoked signer, packet source substitution, false self-report, wrong h
   {...f,packet:{...f.packet,records:[{...f.packet.records[0],
     record:{...f.packet.records[0].record,reviewer:'reviewer_a'}}]}},
   {...f,packet:{...f.packet,classification:'self_reported_unverified'}},
+  {...f,expectedSourceSha:'f'.repeat(40)},
+  {...f,expectedArtifactSha:'f'.repeat(64)},
   {...f,now:'2026-10-10T12:00:00.000Z'}
  ])assert.throws(()=>auditOperatorPacket(input));
 });
