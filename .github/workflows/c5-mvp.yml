@@ -1,0 +1,31 @@
+name: C5 Owner Session & Focus Checks
+on:
+  push:
+    branches: ['rescue/c5-session-objective-isolation']
+  pull_request:
+    paths: ['src/**','tests/**','db/**','.github/workflows/c5-mvp.yml']
+permissions:
+  contents: read
+jobs:
+  app:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+  postgres:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Runner-local PostgreSQL P0–P5+C2 owner RLS regressions (NOT live Supabase)
+        run: |
+          set -euo pipefail
+          sudo systemctl start postgresql.service
+          sudo -u postgres createdb control_c5_test
+          cat tests/sql/bootstrap.sql db/schema.sql db/p1-app.sql db/p2-progress.sql db/p3-github.sql db/p4-recommendations.sql db/p5-reviews.sql tests/sql/qualify.sql tests/sql/qualify-candidates.sql tests/sql/p2-qualify.sql tests/sql/p3-qualify.sql tests/sql/p4-qualify.sql tests/sql/p5-qualify.sql tests/sql/c2-qualify.sql | sudo -u postgres psql -d control_c5_test -v ON_ERROR_STOP=1

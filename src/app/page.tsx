@@ -13,5 +13,5 @@ export default async function Home(){
  }
  const client=await userClient();const { data, error }=await client.auth.getUser();
  if(error || !data.user || data.user.is_anonymous)return <Login/>;
- return controlOwnerAllowed(data.user.id)?<Dashboard/>:<AccessDenied/>;
+ return controlOwnerAllowed(data.user.id)?<Dashboard ownerId={data.user.id}/>:<AccessDenied/>;
 }

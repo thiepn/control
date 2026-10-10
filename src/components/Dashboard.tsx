@@ -8,6 +8,7 @@ import RecommendationsWorkspace from './RecommendationsWorkspace';
 import OperationsWorkspace from './OperationsWorkspace';
 import RepositoryDiscovery from './RepositoryDiscovery';
 import {commandSnapshot,focusWhenProgressUnavailable} from '@/lib/control-command.mjs';
+import {ownerSessionChanged} from '@/lib/control-session.mjs';
 type Project={id:string;title:string;slug:string;summary:string|null;category:string|null;priority:string|null;lifecycle:string;manual_rank:number|null;deadline_date:string|null;deadline_kind:string|null;next_action:string|null;version:number};
 type Candidate={id:string;full_name:string;github_repository_id:number;review_status:string;review_note:string|null;project_id:string|null};
 type RepoLink={project_id:string;full_name:string|null;link_role:string};
@@ -16,7 +17,7 @@ type ProgressData={targets:{id:string;project_id:string;name:string;milestones:{
 const states=['inbox','planned','active','waiting','paused','completed','archived'];
 const ps=['P0','P1','P2','P3'];
 async function api<T>(path:string, options:RequestInit={}):Promise<T>{const response=await fetch(path,{...options,headers:{'Content-Type':'application/json',...(options.headers||{})},cache:'no-store'});const result=await response.json();if(!response.ok)throw Error(result.error||`HTTP ${response.status}`);return result as T;}
-export default function Dashboard(){
+export default function Dashboard({ownerId}:{ownerId:string}){
  const [rows,setRows]=useState<Project[]>([]);const [focus,setFocus]=useState<Focus>({week:'',items:[]});const [candidates,setCandidates]=useState<Candidate[]>([]);
  const [progressData,setProgressData]=useState<ProgressData>({targets:[],phases:[],focus:[]});const [progressError,setProgressError]=useState('');const [progressState,setProgressState]=useState<'loading'|'ready'|'unavailable'>('loading');const [syncState,setSyncState]=useState<'connecting'|'ready'|'partial'|'error'>('connecting');const [repoName,setRepoName]=useState('');
  const [repoLinks,setRepoLinks]=useState<RepoLink[]>([]),[repoLinksError,setRepoLinksError]=useState(''),[repoLinksPartial,setRepoLinksPartial]=useState(false),[candidateError,setCandidateError]=useState('');
@@ -44,6 +45,17 @@ export default function Dashboard(){
   }catch(e){setSyncState('error');setProgressState('unavailable');throw e;}
  },[]);
  useEffect(()=>{refresh().catch(e=>setError(e.message)).finally(()=>setLoading(false));},[refresh]);
+ // Supabase broadcasts sign-out and account changes across browser tabs. The
+ // server's exact owner ID is the baseline; never keep old owner's data mounted.
+ useEffect(()=>{
+  const {data:{subscription}}=browserClient().auth.onAuthStateChange((event,session)=>{
+   if(!ownerSessionChanged(event,session?.user?.id,ownerId))return;
+   setRows([]);setFocus({week:'',items:[]});setCandidates([]);setRepoLinks([]);
+   setProgressData({targets:[],phases:[],focus:[]});setSelected(null);
+   window.location.replace('/');
+  });
+  return ()=>subscription.unsubscribe();
+ },[ownerId]);
  useEffect(()=>{if(!selected||!dialogRef.current)return;return installDialogFocusTrap(dialogRef.current,()=>setSelected(null),focusReturnRef.current);},[selected]);
  const chosen=rows.find(x=>x.id===selected)||null;const activeIds=focus.items.map(x=>x.project_id);
  const command=useMemo(()=>progressState==='ready'?commandSnapshot(rows,progressData.targets,progressData.phases,focus.items):focusWhenProgressUnavailable(rows,focus.items),[rows,progressData,focus.items,progressState]);
