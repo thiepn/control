@@ -3,18 +3,18 @@
 A **private personal project portfolio and next-action dashboard**, built to answer:
 **Which project should I focus on, and what should I do next?**
 
-> Status: C1 MVP rescue source implemented and tested, **not deployed**. This GitHub repository is **public**, so no private inventory or credentials are committed. All project data belongs in an independently configured owner-authenticated backend, never in source.
+> Status: **C3 source-validated draft PR #20, not deployed or owner-accepted**. GitHub source is public, so private project inventory, credentials and source evidence are never committed. The app cannot show a live portfolio until an independently approved private Supabase backend is configured.
 
 ## Core user experience
 
-- **Command**: one next action (your weekly focus first, otherwise an explainable recommendation), three focus slots, inbox triage.
+- **Command**: one recorded next action (your weekly focus first, otherwise an explainable recommendation), three focus slots, inbox triage. During partial outages it shows the manually selected focus only and clearly labels unavailable evidence.
 - **Portfolio**: search, sort, update state/priority/deadline, set a concrete next task, reorder and choose focus.
 - **Progress**: real weighted milestones, separate self-reported and verified progress, named development phases and target definitions.
-- **Import review**: paste a public `owner/repo` or GitHub URL for safe GitHub identity resolution; link to an existing project only after approval. Authorized private GitHub App lookup is optional. Advanced bulk JSON intake remains.
+- **Import review**: discover public GitHub repositories by owner in pages, select multiple candidates, manually create an inbox project and link repositories to it individually. Authorized private GitHub App lookup is restricted to an explicitly configured Control owner. Advanced single-repository and bulk JSON intake remain.
 - **Priorities**: deterministic, inspectable suggestions; no automatic overwrite of owner priority.
 - **GitHub & Review**: read-only verified event ingestion/reconciliation (once authorized GitHub App is configured), weekly reflections, audit history.
 
-The original scope is defined by [product brief](docs/01-brief-and-journeys.md) and [P0–P7 roadmap](docs/08-roadmap.md). [C1 recovery and minimum launch path](docs/26-c1-mvp-recovery.md) supersedes P7–P17 governance expansion for the **MVP**. Those older draft PRs are preserved as history, not dependencies.
+The original scope is defined by [product brief](docs/01-brief-and-journeys.md) and [P0–P7 roadmap](docs/08-roadmap.md). Read [C1 rescue](docs/26-c1-mvp-recovery.md), [C2 onboarding](docs/27-c2-onboarding.md) and **[C3 authorized acceptance instructions](docs/28-c3-private-acceptance.md)**. P7–P17 governance expansion is out of MVP scope; all older draft PRs are preserved without modification.
 
 ## Technology and local development
 
@@ -32,6 +32,10 @@ npm run dev
 
 Database SQL is under `db/`; do **not** apply it to any existing production or shared THIEPN Account/Core database. The application displays a configuration screen until an authorized Supabase backend is supplied.
 
+## Validation and acceptance
+
+The branch CI checks TypeScript, 66 passing unit/source tests (one intentionally skipped), a Next.js production build, and independent runner-local PostgreSQL/RLS regressions. **These do not prove Supabase Auth, physical-device usability or a deployed URL.** The mandatory inherited P1 real-Supabase check deliberately fails without an approved disposable project and two real test users; see the C3 acceptance instructions above. No browser/physical results have been fabricated.
+
 ## Release blockers
 
 1. Explicit repository privacy decision before storing private project inventory.
@@ -39,4 +43,4 @@ Database SQL is under `db/`; do **not** apply it to any existing production or s
 3. Owner-approved runtime configuration, and optional read-only GitHub App installation for private repository lookup / reconciliation.
 4. Real authenticated desktop/mobile browser QA, owner confirmation of daily Command/Portfolio/Progress flows, and explicit deployment authorization.
 
-No P7–P17 external witness/custody gates are introduced by C1. No merge, deployment, live database migration, or private inventory import has been performed.
+No P7–P17 external witness/custody gates were introduced by C1–C3. No merge, deployment, live database migration, real account provisioning, physical acceptance or private inventory import has been performed.
