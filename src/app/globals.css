@@ -121,3 +121,10 @@
 .p12-gates strong{font-size:12px;line-height:1.4}
 .p12-gates span{font-size:11px;color:#8a493b;line-height:1.5}
 @media(max-width:540px){.p12-gates{grid-template-columns:1fr}}
+
+/* P13 metadata-only witness layer is never an approved state. */
+.p13-gates{list-style:none;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));padding:0;margin:15px 0;gap:1px;background:var(--line);border:1px solid var(--line)}
+.p13-gates li{background:var(--white);padding:16px;min-width:0;display:grid;gap:8px}
+.p13-gates strong{font-size:12px;line-height:1.4}
+.p13-gates span{font-size:11px;color:#8a493b;line-height:1.5}
+@media(max-width:540px){.p13-gates{grid-template-columns:1fr}}

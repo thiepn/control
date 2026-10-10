@@ -63,6 +63,15 @@ export default function ReleaseReadinessPanel(){
     <li><strong>Recovery and separate-governance builds</strong><span>Only CI synthetic tests; real disposable restoration and outside builders open</span></li>
    </ul>
    <p className="p8-warning" role="note">P12 RELEASE — DENIED: 16 external prerequisites open; no publish, merge, migration or deployment approval.</p>
+   <div className="section-label"><strong>P13 — SEGREGATED EXTERNAL WITNESS INTAKE</strong><span>REVIEW-ONLY</span></div>
+   <p className="note">Two signed, independently pinned metadata records and separate owner/auditor acknowledgments cannot establish real device access, copyrighted source ownership, Supabase recovery, independent organizational build custody or release permission.</p>
+   <ul className="p13-gates" aria-label="P13 manual release prerequisites">
+    <li><strong>Dual-party evidence custody</strong><span>External observer/auditor real-world witness missing</span></li>
+    <li><strong>Release role separation</strong><span>Owner and auditor nonrelease review only; human approval missing</span></li>
+    <li><strong>Disposable recovery and privacy</strong><span>External authorization and genuine restoration missing</span></li>
+    <li><strong>Independent organization builders</strong><span>Only synthetic CI signatures; production image signoff missing</span></li>
+   </ul>
+   <p className="p8-warning" role="note">P13 RELEASE — DENIED: 18 external prerequisites open; no merge, migration or deployment.</p>
    <p className="p8-warning">Release status: NOT AUTHORIZED · No automatic merge, migration, rollback or deployment</p>
  </section>;
 }
