@@ -36,7 +36,7 @@ export default function RepositoryDiscovery({onImported,knownIds=[]}:{onImported
  return <section className="discovery" aria-label="Discover GitHub repositories">
   <div className="section-label"><strong>DISCOVER REPOSITORIES</strong><span>Read-only preview → explicit intake</span></div>
   <form className="discovery-controls" onSubmit={e=>{e.preventDefault();get(1);}}>
-   <label>GITHUB OWNER<input aria-label="GitHub account or organization" required value={owner} onChange={e=>setOwner(e.target.value)} placeholder="thiepn or newmedu"/></label>
+   <label>GITHUB OWNER<input aria-label="GitHub account or organization" required value={owner} onChange={e=>{setOwner(e.target.value);setPage(null);setSelected([]);}} placeholder="thiepn or newmedu"/></label>
    <label>SOURCE<select aria-label="Repository visibility source" value={source} onChange={e=>{setSource(e.target.value);setPage(null);setSelected([]);}}>
     <option value="public">Public repositories</option><option value="installation">Authorized GitHub App repositories</option></select></label>
    <button type="submit" disabled={busy||!owner.trim()}>Find repositories</button>

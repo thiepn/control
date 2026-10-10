@@ -1,6 +1,7 @@
 import {requireOwner,json,fail,sameOrigin} from '@/lib/http';
 import {installationToken} from '@/lib/github-app.mjs';
 import {parseRepositoryName} from '@/lib/repo-name.mjs';
+import {githubPrivateAccessAllowed} from '@/lib/github-authorization.mjs';
 
 // Fixed GitHub API host, owner authenticated, same-origin POST. No user-provided URL is fetched.
 export async function POST(req:Request){
@@ -11,6 +12,8 @@ export async function POST(req:Request){
  if(!name)return json({error:'Use owner/repo or a github.com repository URL'},400);
  const headers:Record<string,string>={Accept:'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'};
  if(process.env.GITHUB_APP_ID||process.env.GITHUB_APP_INSTALLATION_ID||process.env.GITHUB_APP_PRIVATE_KEY){
+  if(!githubPrivateAccessAllowed(auth.ownerId))
+   return json({error:'GitHub App not authorized for this Control account'},403);
   try{headers.Authorization='Bearer '+await installationToken();}
   catch{return json({error:'GitHub App configuration incomplete or unavailable'},503);}
  }

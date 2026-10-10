@@ -20,3 +20,7 @@
 
 ## Exclusions and blockers
 No production migration, no private source inventory, no fabricated state/progress/evidence, no automatic project classification, no provider approvals, no merge/deployment, no P7–P17-style extra governance. Real Supabase Auth integration, authenticated browser acceptance and real GitHub installation evidence remain **not collected**. GitHub public API rate limits/pagination and authorized App installation access still apply.
+
+## Private GitHub App account boundary
+
+An App installation token belongs to the server, not to a signed-in Supabase browser user. Before enabling App-based **private** discovery or single-repository lookup, set `CONTROL_GITHUB_ALLOWED_OWNER_ID` in server-only runtime configuration to the exact authenticated Supabase user UUID approved to access that installation. If it is absent or differs, C2 refuses the private operation (403) even if installation credentials exist. Public discovery works without an App.

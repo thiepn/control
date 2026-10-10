@@ -16,3 +16,11 @@ test('project-repository mapping is only read through authenticated RLS client',
  assert.match(s,/auth\.reader\.from\('github_repositories'\)/);
  assert.doesNotMatch(s,/adminClient|auth\.writer/);
 });
+
+test('private installation discovery and direct GitHub lookups are restricted to the configured authenticated owner',()=>{
+ const list=read('candidates/discover/route.ts');
+ const resolve=read('candidates/resolve/route.ts');
+ assert.match(list,/githubPrivateAccessAllowed\(auth\.ownerId\)/);
+ assert.match(resolve,/githubPrivateAccessAllowed\(auth\.ownerId\)/);
+ assert.match(list,/403/);assert.match(resolve,/403/);
+});
