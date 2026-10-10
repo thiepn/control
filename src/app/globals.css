@@ -142,3 +142,10 @@
 .p15-gates strong{font-size:12px;line-height:1.4}
 .p15-gates span{font-size:11px;color:#8a493b;line-height:1.5}
 @media(max-width:540px){.p15-gates{grid-template-columns:1fr}}
+
+/* P16 immutable independent review/denial surfaces. */
+.p16-gates{list-style:none;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));padding:0;margin:15px 0;gap:1px;background:var(--line);border:1px solid var(--line)}
+.p16-gates li{background:var(--white);padding:16px;min-width:0;display:grid;gap:8px}
+.p16-gates strong{font-size:12px;line-height:1.4}
+.p16-gates span{font-size:11px;color:#8a493b;line-height:1.5}
+@media(max-width:540px){.p16-gates{grid-template-columns:1fr}}
