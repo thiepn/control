@@ -13,7 +13,7 @@ test.beforeEach(async({page})=>{
   await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(value)});
  });
  await page.route('**/api/p7/evidence',route=>route.fulfill({status:200,contentType:'application/json',
-  body:JSON.stringify({items:[{surface:'nvda',classification:'self_reported_unverified',source_sha:'a'.repeat(40)}]})}));
+  body:JSON.stringify({items:[{surface:'nvda',classification:'self_reported_unverified',source_sha:'a'.repeat(40),evidence_sha256:'b'.repeat(64),observation:'Synthetic only',recorded_at:'2026-10-10T00:00:00Z'}]})}));
 });
 test('receipt never promotes gate, and no release/deploy button is present',async({page})=>{
  await page.goto('/p6-fixture-internal');
