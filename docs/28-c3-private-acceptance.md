@@ -8,6 +8,7 @@ C3 is a **source hardening and safe acceptance-preparation phase** stacked on C2
 2. Before C3, the header says **SYNCED TO BACKEND** after load even when authenticated API refresh fails, or phase/repository data is missing. C3 has explicit connecting/connected/partial/error states and a real retry operation.
 3. Before C3, onboarding an existing repository requires navigating back to Portfolio to create a project. C3 adds an explicit project-creation form beside candidate review, using the existing authenticated project API; no automatic project grouping.
 4. If a database progress write commits but the subsequent dashboard reread fails, C3 no longer mislabels the committed mutation as "Action failed".
+5. The repository-review candidate API was a hard dependency of the Command/Portfolio refresh. C3 treats that read as optional, keeps authenticated projects/focus usable when candidate intake is unavailable, and labels the dashboard PARTIAL DATA.
 
 ## Real-environment acceptance: NOT COMPLETE
 

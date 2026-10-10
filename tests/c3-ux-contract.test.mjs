@@ -21,3 +21,10 @@ test('owner manually creates unassessed project during review, not by GitHub imp
 test('Post-write reread failures are shown as uncertain readback, not mutation failure',()=>{
  assert.match(progress,/Saved to the database, but the refreshed dashboard could not be loaded/);
 });
+
+test('Candidate intake failure is isolated from primary authenticated project and focus reads',()=>{
+ assert.match(dashboard,/const \[p,f\]=await Promise\.all/);
+ assert.match(dashboard,/const \[candidates,links,progress\]=await Promise\.allSettled/);
+ assert.match(dashboard,/Repository review unavailable\. Core project planning remains accessible/);
+ assert.match(dashboard,/candidates\.status==='fulfilled'&&links\.status==='fulfilled'&&progress\.status==='fulfilled'/);
+});

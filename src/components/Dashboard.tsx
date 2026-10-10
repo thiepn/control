@@ -19,7 +19,7 @@ async function api<T>(path:string, options:RequestInit={}):Promise<T>{const resp
 export default function Dashboard(){
  const [rows,setRows]=useState<Project[]>([]);const [focus,setFocus]=useState<Focus>({week:'',items:[]});const [candidates,setCandidates]=useState<Candidate[]>([]);
  const [progressData,setProgressData]=useState<ProgressData>({targets:[],phases:[],focus:[]});const [progressError,setProgressError]=useState('');const [progressState,setProgressState]=useState<'loading'|'ready'|'unavailable'>('loading');const [syncState,setSyncState]=useState<'connecting'|'ready'|'partial'|'error'>('connecting');const [repoName,setRepoName]=useState('');
- const [repoLinks,setRepoLinks]=useState<RepoLink[]>([]),[repoLinksError,setRepoLinksError]=useState(''),[repoLinksPartial,setRepoLinksPartial]=useState(false);
+ const [repoLinks,setRepoLinks]=useState<RepoLink[]>([]),[repoLinksError,setRepoLinksError]=useState(''),[repoLinksPartial,setRepoLinksPartial]=useState(false),[candidateError,setCandidateError]=useState('');
  const [candidateTargets,setCandidateTargets]=useState<Record<string,string>>({});
  const [tab,setTab]=useState<'command'|'portfolio'|'review'|'progress'|'evidence'|'insights'|'operations'>('command');const [query,setQuery]=useState('');const [sort,setSort]=useState('manual');const [life,setLife]=useState('all');
  const dialogRef=useRef<HTMLElement|null>(null);const focusReturnRef=useRef<HTMLElement|null>(null);
@@ -27,17 +27,20 @@ export default function Dashboard(){
  const refresh=useCallback(async()=>{
   setSyncState('connecting');
   try{
-   const [p,f,c]=await Promise.all([api<{items:Project[]}>('/api/projects'),api<Focus>('/api/focus'),api<{items:Candidate[]}>('/api/candidates')]);
-   setRows(p.items);setFocus(f);setCandidates(c.items);
-   const [links,progress]=await Promise.allSettled([
+   const [p,f]=await Promise.all([api<{items:Project[]}>('/api/projects'),api<Focus>('/api/focus')]);
+   setRows(p.items);setFocus(f);
+   const [candidates,links,progress]=await Promise.allSettled([
+    api<{items:Candidate[]}>('/api/candidates'),
     api<{links:RepoLink[];partial:boolean}>('/api/portfolio/repositories'),
     api<ProgressData>('/api/progress')
    ]);
+   if(candidates.status==='fulfilled'){setCandidates(candidates.value.items);setCandidateError('');}
+   else{setCandidates([]);setCandidateError('Repository review unavailable. Core project planning remains accessible.');}
    if(links.status==='fulfilled'){setRepoLinks(links.value.links);setRepoLinksPartial(links.value.partial);setRepoLinksError('');}
    else{setRepoLinks([]);setRepoLinksPartial(false);setRepoLinksError('Linked repositories unavailable. Retry when connected.');}
    if(progress.status==='fulfilled'){setProgressData(progress.value);setProgressState('ready');setProgressError('');}
    else{setProgressData({targets:[],phases:[],focus:[]});setProgressState('unavailable');setProgressError('Progress and phase evidence unavailable. Manually selected focus remains visible but its phase cannot be checked.');}
-   setSyncState(links.status==='fulfilled'&&progress.status==='fulfilled'?'ready':'partial');
+   setSyncState(candidates.status==='fulfilled'&&links.status==='fulfilled'&&progress.status==='fulfilled'?'ready':'partial');
   }catch(e){setSyncState('error');setProgressState('unavailable');throw e;}
  },[]);
  useEffect(()=>{refresh().catch(e=>setError(e.message)).finally(()=>setLoading(false));},[refresh]);
@@ -69,7 +72,7 @@ export default function Dashboard(){
   </aside>
   <div className="main"><header className="topline"><span>PERSONAL PROJECT OPERATIONS</span><span role="status">PRIVATE · {syncState==='connecting'?'CONNECTING':syncState==='ready'?'CONNECTED':syncState==='partial'?'PARTIAL DATA':'CONNECTION FAILED'}</span></header>
    <main id="control-content" tabIndex={-1}><div className="pagehead"><div><div className="overline">{tab.toUpperCase()} / {new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})}</div><h1>{tab==='command'?'Make progress.':tab==='portfolio'?'Every project.':tab==='progress'?'Measure real progress.':tab==='evidence'?'Review GitHub evidence.':tab==='insights'?'Decide what matters next.':tab==='operations'?'Review your portfolio.':'Review imports.'}</h1><p>{tab==='command'?'Select the work that actually matters.':tab==='portfolio'?'Complete control, without invented completion figures.':tab==='progress'?'Weighted milestones, phases and weekly commitments.':tab==='evidence'?'Signed events, exact commits, and auditable decisions.':tab==='insights'?'Transparent scores, focus capacity and reviewed decisions.':tab==='operations'?'Weekly reflection, activity provenance and integration health.':'Import deliberately. Nothing becomes active automatically.'}</p></div><div className="head-stat"><strong>{rows.length}</strong><span>REGISTERED PROJECTS</span></div></div>
-   {notice&&<p role="status" className="status success">{notice}</p>}{error&&<p role="alert" className="status failure">{error}</p>}{progressError&&<p role="status" className="status failure">{progressError}</p>}{repoLinksError&&<p role="status" className="status failure">{repoLinksError}</p>}
+   {notice&&<p role="status" className="status success">{notice}</p>}{error&&<p role="alert" className="status failure">{error}</p>}{progressError&&<p role="status" className="status failure">{progressError}</p>}{repoLinksError&&<p role="status" className="status failure">{repoLinksError}</p>}{candidateError&&<p role="status" className="status failure">{candidateError}</p>}
    {(syncState==='partial'||syncState==='error')&&<button className="mini-action" onClick={()=>refresh().then(()=>setError('')).catch(e=>setError(e instanceof Error?e.message:'Refresh failed'))}>Retry connection</button>}
    {tab==='command'&&<><div className="section-label"><strong>NEXT ACTION</strong><button onClick={()=>setTab('insights')}>See priority reasoning ↗</button></div>
     <section className="command-next" aria-label="Recommended next action">
