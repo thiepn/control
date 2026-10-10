@@ -106,6 +106,10 @@ export function createWorker(auth=verifyAccess){
     const rows=await env.DB.prepare('SELECT * FROM project_reviews ORDER BY assessed_at DESC, repo_url LIMIT 2000').all();
     return json({items:rows.results||[]});
    }
+   if(path==='/api/signals'&&method==='GET'){
+    const rows=await env.DB.prepare('SELECT repo_url,signal_key,kind,dimension,state,label,detail,evidence_url,checked_at FROM project_signals ORDER BY repo_url,kind,dimension,signal_key LIMIT 2000').all();
+    return json({items:rows.results||[]});
+   }
    if(path==='/api/projects'&&method==='GET'){
     const rows=await env.DB.prepare('SELECT * FROM projects ORDER BY updated_at DESC, id DESC LIMIT 2000').all();
     return json({items:rows.results||[]});
