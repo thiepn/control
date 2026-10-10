@@ -83,6 +83,17 @@ export default function ReleaseReadinessPanel(){
     <li><strong>Postrelease operator decision</strong><span>DENY — independent rollback and recovery approval missing</span></li>
    </ul>
    <p className="p8-warning" role="note">P14 RELEASE — DENIED: 22 human and external prerequisites remain open. No deployment, migration, merge or production rollback is authorized.</p>
+   <div className="section-label"><strong>P15 — CONSENT REVOCATION &amp; RELEASE FREEZE</strong><span>HOLD / DENY</span></div>
+   <p className="note">Revoked consent must not be resurrected by a historical signature or restored database. Independent rights-owner, device and recovery observations are uncollected. Neither pre-cutover nor postrelease authority is granted.</p>
+   <ul className="p15-gates" aria-label="P15 independent consent and release freeze blockers">
+    <li><strong>Consent and revocation history</strong><span>External rights-holder authorization and immutable revocation custody not collected</span></li>
+    <li><strong>Physical accessibility witnesses</strong><span>Android Chrome, iOS Safari, NVDA and VoiceOver signoff remains open</span></li>
+    <li><strong>Recovery custody</strong><span>Only runner-local synthetic restore; independent real Supabase witness absent</span></li>
+    <li><strong>Production-image provenance</strong><span>Outside-organization source/image attestation not collected</span></li>
+    <li><strong>Pre-cutover release freeze</strong><span>HOLD — owner authorization not collected</span></li>
+    <li><strong>Postrelease rollback hold</strong><span>HOLD — independent human rollback approval not collected</span></li>
+   </ul>
+   <p className="p8-warning" role="note">P15 RELEASE — DENIED: 28 external prerequisites open; freeze remains HOLD. No real cutover, rollback or deployment.</p>
    <p className="p8-warning">Release status: NOT AUTHORIZED · No automatic merge, migration, rollback or deployment</p>
  </section>;
 }
