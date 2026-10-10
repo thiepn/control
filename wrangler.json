@@ -1,0 +1,15 @@
+{
+  "name": "thiepn-control",
+  "main": "src/production.js",
+  "compatibility_date": "2026-10-10",
+  "workers_dev": false,
+  "preview_urls": false,
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "thiepn-control",
+      "database_id": "0ff32e52-8781-44f7-bd48-42718dfa9451",
+      "migrations_dir": "migrations"
+    }
+  ]
+}

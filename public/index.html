@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta name="theme-color" content="#172826"/><title>THIEPN / CONTROL — Projects</title>
+<link rel="stylesheet" href="/styles.css"/><script type="module" src="/app.js"></script></head>
+<body><div class="shell">
+<aside class="sidebar">
+ <a class="brand" href="/" aria-label="THIEPN Control home"><span class="brand-mark">T<span>·</span></span><span class="brand-name">THIEPN<span class="brand-slash"> / </span>CONTROL<small>PROJECT OVERVIEW</small></span></a>
+ <div class="side-section"><p class="side-label">WORKSPACE</p><div class="nav-current"><span class="nav-symbol">▦</span> Overview <span class="nav-hint">01</span></div></div>
+ <div class="side-bottom"><span class="side-status-dot"></span> Private workspace<small>YOUR PROJECTS, IN ONE PLACE.</small></div>
+</aside>
+<div class="main">
+<header class="topbar"><div><span class="top-kicker">PERSONAL WORKSPACE <span class="slash">/</span> OVERVIEW</span></div><div class="top-actions"><button class="ghost small" id="backupBtn" type="button">Export JSON <span aria-hidden="true">↗</span></button><button class="ghost small" id="importBtn" type="button">Import repositories</button></div></header>
+<main id="main">
+<div class="heading"><div><p class="eyebrow"><span class="live-dot"></span> CONTROL CENTER</p><h1>Project overview<span class="period">.</span></h1><p class="subhead">Your priorities. Your progress. One clear picture.</p></div><button class="primary" id="addBtn" type="button"><span aria-hidden="true">+</span> New project</button></div>
+<section class="metrics" aria-label="Project statistics">
+ <div class="metric"><span class="metric-label">TOTAL PROJECTS</span><strong id="totalCount">—</strong><small>Across your workspace</small></div>
+ <div class="metric"><span class="metric-label">IN PROGRESS</span><strong id="activeCount">—</strong><small>Currently active</small></div>
+ <div class="metric"><span class="metric-label">AVERAGE PROGRESS</span><strong id="averageProgress">—</strong><small>Assessed projects only</small></div>
+ <div class="metric"><span class="metric-label">COMPLETED</span><strong id="completeCount">—</strong><small>Marked complete</small></div>
+</section>
+<section class="projects" aria-label="Your projects">
+<div class="list-top"><div><p class="eyebrow">YOUR PORTFOLIO</p><h2>All projects <span id="listCount" class="count"></span></h2></div><span class="manual">Completion is entered manually <span class="info" title="GitHub commits and PRs do not calculate project completion">i</span></span></div>
+<div class="toolbar"><label class="search-wrap"><span aria-hidden="true" class="search-icon">⌕</span><span class="sr-only">Search projects</span><input id="search" type="search" placeholder="Search projects, actions, repositories…" autocomplete="off"/></label>
+<div class="filters"><label><span class="sr-only">Filter by priority</span><select id="priorityFilter"><option value="">All priorities</option><option>P0</option><option>P1</option><option>P2</option><option>P3</option><option value="unassigned">Unassigned</option></select></label>
+<label><span class="sr-only">Filter by status</span><select id="statusFilter"><option value="">All statuses</option><option value="active">Active</option><option value="planned">Planned</option><option value="paused">Paused</option><option value="completed">Completed</option></select></label>
+<label><span class="sr-only">Sort projects</span><select id="sort"><option value="priority">Priority</option><option value="updated">Recently updated</option><option value="name">Name A–Z</option><option value="progress">Most complete</option></select></label></div></div>
+<div id="message" role="status" class="message" hidden></div>
+<div id="list" class="project-list" aria-live="polite"></div>
+<div id="empty" class="empty" hidden><div class="empty-icon" aria-hidden="true">▤</div><strong id="emptyTitle">Nothing here yet.</strong><p id="emptyBody">Create your first project to begin tracking progress.</p><button class="secondary" type="button" id="emptyAdd">Add a project</button></div>
+</section>
+<footer class="footer">THIEPN CONTROL <span>© PERSONAL WORKSPACE</span><span>MANUAL PROGRESS · NO AUTOMATED GUESSWORK</span></footer>
+</main></div></div>
+<dialog id="editDialog" aria-labelledby="editHeading"><form id="projectForm" class="dialog-body">
+<div class="dialog-head"><div><p class="eyebrow">PROJECT DETAILS</p><h2 id="editHeading">New project</h2></div><button type="button" class="close" data-close="editDialog" aria-label="Close">×</button></div>
+<div class="form-grid">
+<label class="span-2">Project name <input name="title" maxlength="100" required placeholder="e.g. StudyOS" autocomplete="off"/></label>
+<label>Priority <select name="priority"><option value="">Not assigned</option><option>P0</option><option>P1</option><option>P2</option><option>P3</option></select></label>
+<label>Status <select name="status"><option value="planned">Planned</option><option value="active">Active</option><option value="paused">Paused</option><option value="completed">Completed</option></select></label>
+<label class="span-2">Completion (%) <div class="range-field"><input name="progress" type="number" min="0" max="100" step="1" placeholder="Unassessed"/><span>Leave blank if unknown</span></div></label>
+<label class="span-2">Next actionable step <textarea name="next_action" maxlength="500" rows="2" placeholder="What actually needs to happen next?"></textarea></label>
+<label class="span-2">GitHub repository URL <input name="repo_url" type="url" maxlength="240" placeholder="https://github.com/owner/repo"/></label>
+<label class="span-2">Notes <textarea name="notes" maxlength="2000" rows="2" placeholder="Optional context"></textarea></label>
+</div><div id="formError" class="form-error" role="alert" hidden></div>
+<div class="form-actions"><button type="button" class="secondary" data-close="editDialog">Cancel</button><button class="primary" type="submit" id="saveBtn">Save project</button></div></form></dialog>
+<dialog id="importDialog" aria-labelledby="importHeading"><form id="importForm" class="dialog-body">
+<div class="dialog-head"><div><p class="eyebrow">GITHUB IMPORT</p><h2 id="importHeading">Import repositories</h2></div><button type="button" class="close" data-close="importDialog" aria-label="Close">×</button></div>
+<p class="dialog-note">Paste repository names, one per line, such as <code>thiepn/studyOS</code>. Existing links are skipped. Names become projects with no invented priority or completion.</p>
+<label class="import-label">Repositories<textarea name="repos" rows="8" placeholder="thiepn/studyOS&#10;thiepn/gomoku&#10;thiepn/my-daily-devotion" required></textarea></label>
+<div id="importError" class="form-error" role="alert" hidden></div>
+<div class="form-actions"><button class="secondary" type="button" data-close="importDialog">Cancel</button><button class="primary" id="importSaveBtn" type="submit">Import projects</button></div>
+</form></dialog>
+</body></html>
