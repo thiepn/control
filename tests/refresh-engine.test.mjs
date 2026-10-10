@@ -33,7 +33,11 @@ test('AI updates require exact review/focus revisions and cannot overwrite proje
 });
 test('run status transitions are one-way and explicit',async()=>{
  let started=false,finished=false;
- const db={prepare(sql){return {bind(){return {async run(){if(sql.startsWith('INSERT')){if(started)return {meta:{changes:0}};started=true;return{meta:{changes:1}}}if(sql.startsWith('UPDATE')){if(finished)return {meta:{changes:0}};finished=true;return{meta:{changes:1}}}throw Error(sql)}}}}};
+ const db={prepare(sql){return {bind(){return {async run(){
+   if(sql.startsWith('INSERT')){if(started)return {meta:{changes:0}};started=true;return {meta:{changes:1}};}
+   if(sql.startsWith('UPDATE')){if(finished)return {meta:{changes:0}};finished=true;return {meta:{changes:1}};}
+   throw Error(sql);
+ }}};}};
  assert.deepEqual(await startRun(db,'r5-test'),{started:true});
  assert.deepEqual(await startRun(db,'r5-test'),{started:false});
  assert.deepEqual(await finishRun(db,'r5-test',{status:'partial',checked:2,changed:1}),{recorded:true});
