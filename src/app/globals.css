@@ -72,3 +72,25 @@
 .command-next small{font-size:11px;color:var(--muted)}
 .command-next button{white-space:nowrap}
 @media(max-width:700px){.command-next{display:grid;padding:18px}.command-next button{width:100%}}
+
+/* C2 practical GitHub onboarding; compact flat surfaces, keyboard controls. */
+.discovery-controls{display:flex;align-items:end;gap:12px;flex-wrap:wrap}
+.discovery-controls label{display:grid;gap:6px;flex:1;min-width:165px;font-size:11px;font-weight:700}
+.discovery-controls input,.discovery-controls select,.candidate-actions select{width:100%;min-height:40px;padding:8px}
+.discovery-controls button,.discovery-toolbar button{background:var(--aside);color:#fff;border:0;padding:10px 15px;min-height:41px}
+.discovery-toolbar{display:flex;align-items:center;gap:10px;justify-content:space-between;flex-wrap:wrap;margin:14px 0}
+.discovery-toolbar strong{font-size:12px}
+.discovery-list{max-height:340px;overflow:auto;border:1px solid var(--line);background:#fff}
+.discovery-item{display:flex;align-items:center;gap:12px;padding:10px 15px;border-bottom:1px solid var(--line);cursor:pointer}
+.discovery-item input{width:18px;height:18px;flex:0 0 18px}
+.discovery-item span{display:grid;gap:3px}
+.discovery-item strong{font-size:13px;overflow-wrap:anywhere}
+.discovery-item small{font-size:11px;color:var(--muted)}
+.candidate-actions{flex-wrap:wrap}
+.candidate-actions label{display:grid;gap:4px;font-size:10px;color:var(--muted);min-width:180px}
+.project-repos{border-top:1px solid var(--line);margin-top:28px;padding-top:14px}
+.project-repos h3{font-size:14px}
+.project-repos ul{padding-left:20px;font-size:12px;line-height:1.8}
+.project-repos small{color:var(--muted)}
+.review-history{margin-top:16px}
+@media(max-width:700px){.discovery-controls{display:grid}.discovery-toolbar button{flex:1}.candidate-actions{width:100%}}
