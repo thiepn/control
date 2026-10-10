@@ -26,7 +26,7 @@ test('receipt never promotes gate, and no release/deploy button is present',asyn
 test('320px touch accessibility keeps visible labels and no horizontal overflow',async({page})=>{
  await page.setViewportSize({width:320,height:720});
  await page.goto('/p6-fixture-internal');
- const section=page.getByRole('region',{name:'Release decision and acceptance gates'});
+ const section=page.getByRole('region',{name:'RELEASE DECISION'});
  await expect(section).toBeVisible();
  await expect(section.getByText('Physical Android Chrome')).toBeVisible();
  const overflow=await page.evaluate(()=>document.documentElement.scrollWidth>window.innerWidth+2);
