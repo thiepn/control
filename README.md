@@ -1,32 +1,42 @@
 # THIEPN Control
 
-An evidence-first, private-by-design project portfolio dashboard. **P1 is in development and not qualified or deployed.**
+A **private personal project portfolio and next-action dashboard**, built to answer:
+**Which project should I focus on, and what should I do next?**
 
-## Core architecture
+> Status: C1 MVP rescue source implemented and tested, **not deployed**. This GitHub repository is **public**, so no private inventory or credentials are committed. All project data belongs in an independently configured owner-authenticated backend, never in source.
 
-- Next.js App Router / React 19, server-validated Supabase Auth and a compact responsive Command + Portfolio + Import Review UI.
-- Owner RLS: browser may read its own rows. Authenticated browser cannot write verified evidence or audit history.
-- Mutations go via server-only service credential and transactionally audited PostgreSQL functions, with version conflict handling.
-- The focus model permits at most three projects per week. Completion is unassessed until verified milestones exist (P2).
-- GitHub source repo may be public; personal/private repository inventory is never committed.
+## Core user experience
 
-## Current status
+- **Command**: one next action (your weekly focus first, otherwise an explainable recommendation), three focus slots, inbox triage.
+- **Portfolio**: search, sort, update state/priority/deadline, set a concrete next task, reorder and choose focus.
+- **Progress**: real weighted milestones, separate self-reported and verified progress, named development phases and target definitions.
+- **Import review**: paste a public `owner/repo` or GitHub URL for safe GitHub identity resolution; link to an existing project only after approval. Authorized private GitHub App lookup is optional. Advanced bulk JSON intake remains.
+- **Priorities**: deterministic, inspectable suggestions; no automatic overwrite of owner priority.
+- **GitHub & Review**: read-only verified event ingestion/reconciliation (once authorized GitHub App is configured), weekly reflections, audit history.
 
-The connected GitHub repository `thiepn/control` was newly created **public**, despite P0's private-repo requirement. No credentials or private inventory are included. P1 remains unqualified until the repository visibility decision, pinned dependency lock, real database and two-user integration verification, browser accessibility testing, and exact-head CI gates close.
+The original scope is defined by [product brief](docs/01-brief-and-journeys.md) and [P0–P7 roadmap](docs/08-roadmap.md). [C1 recovery and minimum launch path](docs/26-c1-mvp-recovery.md) supersedes P7–P17 governance expansion for the **MVP**. Those older draft PRs are preserved as history, not dependencies.
 
-## Local setup (after registry/network access is available)
+## Technology and local development
 
-1. `npm install` (generate and commit `package-lock.json` before requesting full certification).
-2. Create a **separate disposable Supabase project**; review `db/schema.sql` and `db/p1-app.sql` and test RLS there. Never run these SQL files against an existing project without explicit approval.
-3. Copy `.env.example` to `.env.local` and configure Supabase public URL/key and server-only secret.
-4. `npm run dev`; `npm run typecheck`; `npm test`; `npm run build`.
-5. Configure required GitHub Actions secrets for two-user live RLS verification. Never configure against production.
+Next.js 16 / React 19 / PostgreSQL + Supabase Auth/RLS. Server-side owner-checked RPC writes and one owner-only browser read role; max three weekly focus slots enforced in database transactions.
 
-## P0 history and contracts
+```sh
+npm ci
+cp .env.example .env.local
+# supply keys for an independently authorized isolated Supabase project; never commit .env.local
+npm run typecheck
+npm test
+npm run build
+npm run dev
+```
 
-- `docs/01-brief-and-journeys.md` through `docs/08-roadmap.md` are the P0 design and security contracts.
-- `docs/09-p1-development.md` documents the exact P1 scope, gaps, and verification blockers.
-- `design/prototype/index.html` remains the prior non-persistent design reference.
-- `tests/p1-rules.test.mjs` and `tests/p1-security.test.mjs` are dependency-free source/policy checks, **not substitutes for live RLS**.
+Database SQL is under `db/`; do **not** apply it to any existing production or shared THIEPN Account/Core database. The application displays a configuration screen until an authorized Supabase backend is supplied.
 
-**Not performed:** production migrations, deployment, release, merging, private inventory publication, human acceptance, or P2 implementation.
+## Release blockers
+
+1. Explicit repository privacy decision before storing private project inventory.
+2. Fresh **disposable** Supabase project, reviewed schema and live two-user authentication/RLS/concurrent-write qualification. P1 CI intentionally fails without these independent credentials/authorization; unit tests and isolated PostgreSQL are not substitutes.
+3. Owner-approved runtime configuration, and optional read-only GitHub App installation for private repository lookup / reconciliation.
+4. Real authenticated desktop/mobile browser QA, owner confirmation of daily Command/Portfolio/Progress flows, and explicit deployment authorization.
+
+No P7–P17 external witness/custody gates are introduced by C1. No merge, deployment, live database migration, or private inventory import has been performed.
