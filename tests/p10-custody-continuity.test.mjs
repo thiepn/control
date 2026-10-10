@@ -53,4 +53,3 @@ test('truncation, replay, missing independently pinned anchor, tamper and wrong 
   {...f,current:{...f.current,issued_at:f.previous.issued_at}}
  ])assert.throws(()=>verifyCustodyContinuity(input));
 });
-}
