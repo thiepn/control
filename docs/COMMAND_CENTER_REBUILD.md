@@ -31,7 +31,7 @@
 
 ## Immediate evidence boundary
 
-The first intelligence sample is based on current GitHub PR metadata for StudyOS, MDD, Hub, LiGoQuiz, Recipe, Our Little Room, Gomoku and Control. GitHub checks and PR titles inform recommendations; they do not certify live release. Reviews are stored in dedicated D1 `project_reviews`. The remaining projects show **Awaiting AI review**, not invented ratings. Progress percentages are never filled merely from commit counts or PR numbers.
+R2 has triaged all 87 visible GitHub repositories, including newly discovered `karaoke`; 20 records are explicitly metadata-only. All evidence URLs are preserved, but source-backed triage does not amount to a release audit. See `docs/R2_EVIDENCE_AUDIT.md`. Numeric progress percentages remain unknown until verified milestones support them.
 
 ## Phase execution protocol
 
