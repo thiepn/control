@@ -6,10 +6,10 @@ type Milestone={id:string;title:string;weight:number;completion_fraction:number|
 type Target={id:string;project_id:string;name:string;definition_of_done:string;milestones:Milestone[]};
 type Phase={id:string;project_id:string;phase_key:string;title:string;state:string;notes:string|null};
 type Focus={week_start:string;focus_items:{project_id:string;slot:number;objective:string}[]};
-export default function ProgressWorkspace({projects}:{projects:Project[]}){
+export default function ProgressWorkspace({projects,onChange}:{projects:Project[];onChange?:()=>Promise<void>}){
  const [targets,setTargets]=useState<Target[]>([]),[phases,setPhases]=useState<Phase[]>([]),[focus,setFocus]=useState<Focus[]>([]);
  const [project,setProject]=useState(''),[name,setName]=useState(''),[definition,setDefinition]=useState('');
- const [milestone,setMilestone]=useState(''),[weight,setWeight]=useState('1'),[phaseKey,setPhaseKey]=useState('P1'),[phaseState,setPhaseState]=useState('planned');
+ const [milestone,setMilestone]=useState(''),[weight,setWeight]=useState('1'),[phaseKey,setPhaseKey]=useState('P1'),[phaseTitle,setPhaseTitle]=useState(''),[phaseState,setPhaseState]=useState('planned');
  const [objective,setObjective]=useState(''),[message,setMessage]=useState(''),[busy,setBusy]=useState(false);
  const today=new Date().toLocaleDateString('en-CA',{timeZone:'Europe/Berlin'});
  const selected=projects.find(p=>p.id===project);
@@ -21,7 +21,7 @@ export default function ProgressWorkspace({projects}:{projects:Project[]}){
  const act=async(action:string,payload:Record<string,unknown>)=>{
   setBusy(true);setMessage('');
   try{const r=await fetch('/api/progress',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({project_id:project,action,payload})});
-   const data=await r.json();if(!r.ok)throw Error(data.error||'Action failed');await reload();setMessage('Saved');}
+   const data=await r.json();if(!r.ok)throw Error(data.error||'Action failed');await reload();await onChange?.();setMessage('Saved');}
   catch(e){setMessage(e instanceof Error?e.message:'Action failed');}finally{setBusy(false)}
  };
  return <section aria-label="Progress workspace">
@@ -59,8 +59,9 @@ export default function ProgressWorkspace({projects}:{projects:Project[]}){
    <div className="table-wrap"><table><thead><tr><th>Phase</th><th>State</th><th>Review</th></tr></thead><tbody>
     {phases.filter(p=>p.project_id===project).map(p=><tr key={p.id}><td>{p.phase_key} — {p.title}</td><td>{p.state}</td><td>Required</td></tr>)}
    </tbody></table></div>
-   <form className="quick-add" onSubmit={e=>{e.preventDefault();act('phase.set',{phase_key:phaseKey,state:phaseState,title:phaseKey})}}>
+   <form className="quick-add" onSubmit={e=>{e.preventDefault();act('phase.set',{phase_key:phaseKey,state:phaseState,title:phaseTitle.trim()||phaseKey})}}>
     <label>PHASE<input required pattern="P[0-9]{1,3}" value={phaseKey} onChange={e=>setPhaseKey(e.target.value)}/></label>
+    <label>PHASE TITLE<input value={phaseTitle} maxLength={160} onChange={e=>setPhaseTitle(e.target.value)} placeholder="What this phase delivers"/></label>
     <label>STATE<select value={phaseState} onChange={e=>setPhaseState(e.target.value)}>{['planned','in_progress','verification','blocked'].map(x=><option key={x}>{x}</option>)}</select></label>
     <button disabled={busy} type="submit">Save phase</button>
    </form>
