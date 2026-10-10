@@ -37,6 +37,15 @@ export default function ReleaseReadinessPanel(){
     <li><strong>Independent signed custody</strong><span>Open — external operator key and pinned ledger checkpoint required</span></li>
     <li><strong>Reversible backup / restore</strong><span>Runner-local synthetic PostgreSQL only; real disposable staging open</span></li>
    </ul>
+   <div className="section-label"><strong>P10 — RELEASE CASE</strong><span>DENIED BY DEFAULT</span></div>
+   <p className="note">The operator acceptance handoff remains closed. No genuine A/B Supabase session, physical-device evidence, independent custody chain, real disposable service restore or separate production release command has been approved.</p>
+   <ul className="p10-gates" aria-label="P10 independent release evidence status">
+    <li><strong>Human acceptance case</strong><span>0 of 7 mandatory gates independently accepted</span></li>
+    <li><strong>Executable build comparison</strong><span>Automated CI evidence only — not a production binary certificate</span></li>
+    <li><strong>Trusted custody continuity</strong><span>Open — externally anchored signer verification required</span></li>
+    <li><strong>Staging and recovery</strong><span>Open — authorized disposable service, physical hardware and real restore required</span></li>
+   </ul>
+   <p className="p8-warning" role="note">RELEASE CASE — DENIED. Manual acceptance cannot trigger automatic merge, deploy or migration.</p>
    <p className="p8-warning">Release status: NOT AUTHORIZED · No automatic merge, migration, rollback or deployment</p>
  </section>;
 }
