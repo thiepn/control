@@ -2,6 +2,7 @@
 import {useEffect,useMemo,useState} from 'react';
 import {aggregateProgress,deadlineSignal} from '@/lib/progress.mjs';
 import {focusDraftKey,focusDraftValue,clearFocusDraft} from '@/lib/focus-drafts.mjs';
+import {readProgressData} from '@/lib/progress-response.mjs';
 type Project={id:string;title:string;deadline_date:string|null;deadline_kind:string|null;lifecycle:string};
 type Milestone={id:string;title:string;weight:number;completion_fraction:number|null;evidence_grade:string;release_gate:string;gate_passed:boolean|null;verified_at:string|null;verified_by:string|null};
 type Target={id:string;project_id:string;name:string;definition_of_done:string;milestones:Milestone[]};
@@ -12,11 +13,19 @@ export default function ProgressWorkspace({projects,onChange}:{projects:Project[
  const [project,setProject]=useState(''),[name,setName]=useState(''),[definition,setDefinition]=useState('');
  const [milestone,setMilestone]=useState(''),[weight,setWeight]=useState('1'),[phaseKey,setPhaseKey]=useState('P1'),[phaseTitle,setPhaseTitle]=useState(''),[phaseState,setPhaseState]=useState('planned');
  const [objectiveDrafts,setObjectiveDrafts]=useState<Record<string,string>>({}),[message,setMessage]=useState(''),[busy,setBusy]=useState(false);
+ const [progressLoad,setProgressLoad]=useState<'loading'|'ready'|'unavailable'>('loading');
  const today=new Date().toLocaleDateString('en-CA',{timeZone:'Europe/Berlin'});
  const selected=projects.find(p=>p.id===project);
  const current=targets.find(t=>t.project_id===project);
  const progress=useMemo(()=>aggregateProgress(current?.milestones||[]),[current]);
- const reload=async()=>{const r=await fetch('/api/progress',{cache:'no-store'});if(!r.ok)throw Error('Could not load progress');const x=await r.json();setTargets(x.targets);setPhases(x.phases);setFocus(x.focus)};
+ const reload=async()=>{
+  setProgressLoad('loading');
+  try{
+   const x=await readProgressData(await fetch('/api/progress',{cache:'no-store'}));
+   setTargets(x.targets);setPhases(x.phases);setFocus(x.focus);
+   setProgressLoad('ready');
+  }catch(e){setProgressLoad('unavailable');throw e;}
+ };
  useEffect(()=>{reload().catch(e=>setMessage(e.message))},[]);
  useEffect(()=>{if(!project&&projects.length)setProject(projects[0].id)},[project,projects]);
  const act=async(action:string,payload:Record<string,unknown>)=>{
@@ -33,7 +42,12 @@ export default function ProgressWorkspace({projects,onChange}:{projects:Project[
   <div className="portfolio-tools">
    <label>PROJECT<select aria-label="Progress project" value={project} onChange={e=>setProject(e.target.value)}>{projects.filter(p=>p.lifecycle!=='archived').map(p=><option value={p.id} key={p.id}>{p.title}</option>)}</select></label>
   </div>
-  {!selected?<p className="empty">Create a project in Portfolio first.</p>:<>
+  {!selected?<p className="empty">Create a project in Portfolio first.</p>:
+   progressLoad!=='ready'?<div role="status" className="status failure">
+    <p>{progressLoad==='loading'?'Loading recorded outcomes and milestones…':'Recorded progress is unavailable, not empty. Do not create another outcome until existing records can be checked.'}</p>
+    {progressLoad==='unavailable'&&<button type="button" disabled={busy}
+     onClick={()=>reload().then(()=>setMessage('')).catch(e=>setMessage(e instanceof Error?e.message:'Progress unavailable'))}>Retry progress read</button>}
+   </div>:<>
    <div className="summary-line" role="status">
     <span><strong>{progress.reported===null?'—':progress.reported+'%'}</strong> Reported</span>
     <span><strong>{progress.verified===null?'—':progress.verified+'%'}</strong> Verified</span>
