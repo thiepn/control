@@ -1,0 +1,89 @@
+name: P9 Operator-Governed Production Readiness Checks
+on:
+  push:
+    branches: ['feat/p9-operator-production-readiness']
+  pull_request:
+    paths: ['src/**','db/**','tests/**','scripts/p9-*','docs/17-p9-acceptance.md','.github/workflows/p9-qualification.yml','playwright*.mjs']
+permissions:
+  contents: read
+env:
+  CONTROL_P9_EXPECTED_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+jobs:
+  application:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+  database:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Synthetic runner-local PostgreSQL owner RLS, concurrency, and reversible restore
+        run: |
+          set -euo pipefail
+          sudo systemctl start postgresql.service
+          sudo -u postgres createdb control_p6_test
+          cat tests/sql/bootstrap.sql db/schema.sql db/p1-app.sql db/p2-progress.sql db/p3-github.sql db/p4-recommendations.sql db/p5-reviews.sql db/p7-device-receipts.sql tests/sql/qualify.sql tests/sql/qualify-candidates.sql tests/sql/p2-qualify.sql tests/sql/p3-qualify.sql tests/sql/p4-qualify.sql tests/sql/p5-qualify.sql tests/sql/p7-qualify.sql | sudo -u postgres psql -d control_p6_test -v ON_ERROR_STOP=1
+          node scripts/p6-concurrency.mjs
+          sudo -u postgres bash scripts/p9-local-restore.sh
+  browser-fixture:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - run: npm install --no-save --no-package-lock @playwright/test@1.56.1
+      - run: npx playwright install --with-deps chromium
+      - name: Synthetic desktop and mobile Chromium, accessible nonrelease decision
+        run: npx playwright test --config=playwright.config.mjs
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p9-synthetic-browser-evidence
+          path: test-results/
+          retention-days: 7
+          if-no-files-found: warn
+  source-rehearsal:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+      - run: node scripts/p9-source-rehearsal.mjs create
+      - name: Independent source, exact-head and digest re-verification
+        run: |
+          set -euo pipefail
+          (cd release-evidence/p9 && sha256sum --check SHA256SUMS)
+          node scripts/p9-source-rehearsal.mjs verify
+      - uses: actions/upload-artifact@v4
+        with:
+          name: p9-review-only-source-handoff
+          path: release-evidence/p9/
+          retention-days: 7
