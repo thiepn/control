@@ -1,6 +1,7 @@
 'use client';
 import {useEffect,useMemo,useState} from 'react';
 import {aggregateProgress,deadlineSignal} from '@/lib/progress.mjs';
+import {focusDraftKey,focusDraftValue,clearFocusDraft} from '@/lib/focus-drafts.mjs';
 type Project={id:string;title:string;deadline_date:string|null;deadline_kind:string|null;lifecycle:string};
 type Milestone={id:string;title:string;weight:number;completion_fraction:number|null;evidence_grade:string;release_gate:string;gate_passed:boolean|null;verified_at:string|null;verified_by:string|null};
 type Target={id:string;project_id:string;name:string;definition_of_done:string;milestones:Milestone[]};
@@ -10,7 +11,7 @@ export default function ProgressWorkspace({projects,onChange}:{projects:Project[
  const [targets,setTargets]=useState<Target[]>([]),[phases,setPhases]=useState<Phase[]>([]),[focus,setFocus]=useState<Focus[]>([]);
  const [project,setProject]=useState(''),[name,setName]=useState(''),[definition,setDefinition]=useState('');
  const [milestone,setMilestone]=useState(''),[weight,setWeight]=useState('1'),[phaseKey,setPhaseKey]=useState('P1'),[phaseTitle,setPhaseTitle]=useState(''),[phaseState,setPhaseState]=useState('planned');
- const [objective,setObjective]=useState(''),[message,setMessage]=useState(''),[busy,setBusy]=useState(false);
+ const [objectiveDrafts,setObjectiveDrafts]=useState<Record<string,string>>({}),[message,setMessage]=useState(''),[busy,setBusy]=useState(false);
  const today=new Date().toLocaleDateString('en-CA',{timeZone:'Europe/Berlin'});
  const selected=projects.find(p=>p.id===project);
  const current=targets.find(t=>t.project_id===project);
@@ -69,11 +70,19 @@ export default function ProgressWorkspace({projects,onChange}:{projects:Project[
     <label>STATE<select value={phaseState} onChange={e=>setPhaseState(e.target.value)}>{['planned','in_progress','verification','blocked'].map(x=><option key={x}>{x}</option>)}</select></label>
     <button disabled={busy} type="submit">Save phase</button>
    </form>
-   {focus.flatMap(f=>f.focus_items.filter(i=>i.project_id===project).map(i=>
-    <form className="quick-add" key={f.week_start+'-'+i.slot} onSubmit={e=>{e.preventDefault();act('focus.objective',{week:f.week_start,objective})}}>
-     <label>WEEKLY OBJECTIVE ({f.week_start})<input required maxLength={500} value={objective||i.objective} onChange={e=>setObjective(e.target.value)}/></label>
+   {focus.flatMap(f=>f.focus_items.filter(i=>i.project_id===project).map(i=>{
+    const key=focusDraftKey(project,f.week_start);
+    return <form className="quick-add" key={f.week_start+'-'+i.slot} onSubmit={e=>{
+      e.preventDefault();
+      act('focus.objective',{week:f.week_start,objective:focusDraftValue(objectiveDrafts,project,f.week_start,i.objective)})
+       .then(saved=>{if(saved)setObjectiveDrafts(d=>clearFocusDraft(d,project,f.week_start));});
+     }}>
+     <label>WEEKLY OBJECTIVE ({f.week_start})<input required maxLength={500}
+      value={focusDraftValue(objectiveDrafts,project,f.week_start,i.objective)}
+      onChange={e=>{const value=e.target.value;setObjectiveDrafts(d=>({...d,[key]:value}));}}/></label>
      <button disabled={busy} type="submit">Save objective</button>
-    </form>))}
+    </form>;
+   }))}
    <p role="status" className="note">{message}</p>
   </>}
  </section>;

@@ -9,7 +9,7 @@ test('private API writer checks allowlisted getUser BEFORE constructing service 
  assert.match(http,/!controlOwnerAllowed\(data\.user\.id\)/);
  assert.ok(http.indexOf('!controlOwnerAllowed(data.user.id)')<http.indexOf('return { ownerId: data.user.id, reader: client, writer: adminClient() }'));
  assert.match(home,/controlOwnerConfigured\(\)/);
- assert.match(home,/controlOwnerAllowed\(data\.user\.id\)\?<Dashboard\/>:<AccessDenied\/>/);
+ assert.match(home,/controlOwnerAllowed\(data\.user\.id\)\?<Dashboard ownerId=\{data\.user\.id\}\/>:<AccessDenied\/>/);
 });
 test('magic link does not silently register unknown users and denied owners can sign out',()=>{
  assert.match(login,/shouldCreateUser:false/);

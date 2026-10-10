@@ -3,7 +3,7 @@
 A **private personal project portfolio and next-action dashboard**, built to answer:
 **Which project should I focus on, and what should I do next?**
 
- > Status: **C4 private-owner/source corrections in draft, not deployed or owner-accepted**. GitHub source is public, so private project inventory, credentials and source evidence are never committed. The app cannot show a live portfolio until an independently approved private Supabase backend is configured.
+ > Status: **C5 nondeploying session/weekly-objective corrections in a stacked draft, not deployed or owner-accepted**. GitHub source is public, so private project inventory, credentials and source evidence are never committed. The app cannot show a live portfolio until an independently approved private Supabase backend is configured.
 
 ## Core user experience
 
