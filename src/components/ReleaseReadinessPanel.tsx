@@ -46,6 +46,14 @@ export default function ReleaseReadinessPanel(){
     <li><strong>Staging and recovery</strong><span>Open — authorized disposable service, physical hardware and real restore required</span></li>
    </ul>
    <p className="p8-warning" role="note">RELEASE CASE — DENIED. Manual acceptance cannot trigger automatic merge, deploy or migration.</p>
+   <div className="section-label"><strong>P11 — INDEPENDENT AUDIT</strong><span>EXTERNAL CUSTODY OPEN</span></div>
+   <p className="note">Separate GitHub CI workers can compare synthetic executable hashes, but cannot independently approve a physical device, human reviewer, operator signature or real disposable Supabase recovery.</p>
+   <ul className="p11-gates" aria-label="P11 independent audit prerequisites">
+    <li><strong>Signer rotation and revocation</strong><span>Uncollected — independently pinned, externally witnessed trust records required</span></li>
+    <li><strong>Two-worker binary provenance</strong><span>CI synthetic evidence only; production-image acceptance not collected</span></li>
+    <li><strong>Disposable recovery</strong><span>Runner-local corruption refusal only; real authorized Supabase restore open</span></li>
+    <li><strong>Independent operator closure</strong><span>DENIED — signed human decision and release permission not collected</span></li>
+   </ul>
    <p className="p8-warning">Release status: NOT AUTHORIZED · No automatic merge, migration, rollback or deployment</p>
  </section>;
 }
