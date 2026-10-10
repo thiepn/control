@@ -53,3 +53,17 @@
 .focus-method{padding:21px 0;font-size:11px;color:#8495a2;line-height:1.8;max-width:790px}
 @media(max-width:1080px){.focus-summary{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:650px){.focus-decision{grid-template-columns:32px minmax(0,1fr);gap:10px;padding:18px 15px}.focus-decision h3{font-size:18px}.focus-rank{font-size:20px}.focus-card-top{align-items:start;flex-direction:column}.focus-card-foot .brief-link{margin-left:0}.focus-head-row{align-items:start;flex-direction:column}.focus-summary{gap:8px}.focus-summary>div{padding:14px}}
+
+/* R5 — understated source observation status, separate from AI release claims. */
+.refresh-top{display:grid;grid-template-columns:1fr auto;gap:25px;align-items:center;border-bottom:1px solid #e5ebee;padding-bottom:22px;margin-bottom:20px}
+.refresh-top>div:first-child{display:flex;flex-direction:column;gap:8px}
+.refresh-top strong{font-size:21px;letter-spacing:-.03em}
+.refresh-top p,.refresh-top small{font-size:11px;color:#80919d;margin:0}
+.refresh-counts{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.refresh-counts span{display:flex;flex-direction:column;gap:7px;font-size:10px;color:#8796a0;text-align:center}
+.refresh-counts strong{font-size:23px;color:#263e52}
+.refresh-activity>.overline{margin-bottom:14px}
+.refresh-event{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid #eef1f3}
+.refresh-event strong{font-size:12px;text-transform:capitalize}
+.refresh-event p{font-size:11px;color:#899aa4;margin:6px 0 0}
+@media(max-width:640px){.refresh-top{grid-template-columns:1fr}.refresh-counts{justify-content:start}.refresh-counts span{text-align:left}}

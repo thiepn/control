@@ -22,7 +22,7 @@
 | R2 — Full portfolio intelligence | Inspect and classify all 86 GitHub repositories, use evidence-driven active/archived/project families; mark unknowns | Coverage expanded, citations and confidence per reviewed repo |
 | R3 — Project briefings & scorecards | Project detail views: current phase, milestones, real blockers, delivery gaps, confidence, suggestions | Implemented source-linked private scorecards; see docs/R3_PROJECT_BRIEFINGS.md |
 | R4 — Smart prioritization | Curated five-project budget, current blockers, evidenced prerequisites, deadline uncertainty and urgency lanes | Implemented qualitative focus; see docs/R4_SMART_FOCUS.md |
-| R5 — AI refresh engine | Schedule recurring ChatGPT-connected review using existing GitHub + Cloudflare tools, plus on-demand review by chat | Writes are conflict-aware, idempotent, visible and testable |
+| R5 — AI refresh engine | Source-fingerprint reconciliation, CAS review/focus writes, immutable audit events, run status, staleness and native daily task integration | Implemented protocol; automatic first scheduled run still unverified. See docs/R5_REFRESH_PROTOCOL.md |
 | R6 — Change history & reliability | Evidence snapshots, stale review alerts, errors, source freshness and non-destructive correction | Owner sees what changed and why |
 | R7 — Dashboard experience | Keyboard access, small-screen real-device checks, refined tables, search, quick navigation and useful visualizations | Clearly legible, responsive, accessible, no generic template feel |
 | R8 — ChatGPT command workflows | Explicit conversation instructions for review, rescope, category, archive, priority change, and one-project update | Owner never needs to edit records manually |

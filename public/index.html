@@ -50,11 +50,13 @@
 <section class="view" id="view-intelligence" hidden>
  <div class="page-head"><span class="overline">04 / HOW THE SYSTEM THINKS</span><h1>Intelligence<span class="accent">.</span></h1><p>Transparent evidence, review coverage and uncertainty. No made-up completion percentages.</p></div>
  <div class="intelligence-grid"><section class="panel"><span class="overline">REVIEW COVERAGE</span><div class="big-number" id="coverageNumber"></div><div class="review-track"><i id="coverageTrack"></i></div><p class="supporting" id="coverageDetail"></p><div id="coverageBuckets" aria-label="Evidence quality distribution"></div></section><section class="panel"><span class="overline">ASSESSMENT METHOD</span><h2>Evidence before estimates.</h2><p class="supporting">Project names and commit counts cannot establish completion. Reviews use available PRs, test results, outstanding gates and project documentation. Unknown values remain unknown.</p><p class="supporting">AI recommendations are distinct from verified acceptance, release status and owner decisions.</p></section></div>
+ <section class="panel full"><div class="section-heading"><div><span class="overline">REFRESH ENGINE</span><h2>Evidence freshness and run status</h2></div></div><div id="refreshSummary"></div></section>
  <section class="panel full"><div class="section-heading"><div><span class="overline">ACTIONABLE EVIDENCE</span><h2>Reviewed project notes</h2></div></div><div id="reviewNotes"></div></section>
 </section>
 <section class="view" id="view-activity" hidden>
  <div class="page-head"><span class="overline">05 / AUDIT TRAIL</span><h1>Review activity<span class="accent">.</span></h1><p>What the AI last reviewed and which repository evidence supports each recommendation.</p></div>
- <section class="panel full"><div id="activityFeed"></div></section>
+ <section class="panel full"><div class="section-heading"><div><span class="overline">DURABLE AUDIT</span><h2>Recorded source changes</h2></div></div><div id="refreshFeed"></div></section>
+ <section class="panel full"><div class="section-heading"><div><span class="overline">PROJECT REVIEWS</span><h2>AI assessments</h2></div></div><div id="activityFeed"></div></section>
 </section>
 <div class="footnote"><span>THIEPN CONTROL / PRIVATE WORKSPACE</span><span>Evidence-led · AI managed · Built for decisions, not data entry</span></div>
 </main>

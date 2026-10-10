@@ -102,6 +102,14 @@ export function createWorker(auth=verifyAccess){
   if(!['GET','POST','PATCH','DELETE'].includes(method))return json({error:'Method not allowed'},405);
   if(method!=='GET'&&!sameOrigin(request))return json({error:'Invalid origin'},403);
   try{
+   if(path==='/api/refresh'&&method==='GET'){
+    const [run,source,events]=await Promise.all([
+      env.DB.prepare('SELECT run_id,kind,status,started_at,finished_at,checked_count,changed_count,discovered_count,focus_changed_count,error_note,evidence_note FROM refresh_runs ORDER BY started_at DESC,run_id DESC LIMIT 12').all(),
+      env.DB.prepare('SELECT repo_url,fingerprint,source_url,last_checked_at,revision,latest_pr_number,latest_ci_conclusion FROM source_observations ORDER BY last_checked_at DESC LIMIT 1000').all(),
+      env.DB.prepare('SELECT event_id,run_id,entity_type,repo_url,action,evidence_url,created_at FROM refresh_events ORDER BY event_id DESC LIMIT 50').all()
+    ]);
+    return json({runs:run.results||[],observations:source.results||[],events:events.results||[]});
+   }
    if(path==='/api/reviews'&&method==='GET'){
     const rows=await env.DB.prepare('SELECT * FROM project_reviews ORDER BY assessed_at DESC, repo_url LIMIT 2000').all();
     return json({items:rows.results||[]});
