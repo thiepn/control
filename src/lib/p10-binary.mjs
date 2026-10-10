@@ -27,8 +27,13 @@ export function makeExecutableManifest({sourceSha,treeSha,entries}){
 export function compareExecutableManifests(first,second){
  if(!first||!second||JSON.stringify(first)!==JSON.stringify(second)
   ||first.release_authorized!==false||second.release_authorized!==false
-  ||first.schema!=='control-p10-emitted-build-v1')
-  throw Error('Executable outputs differ, source was swapped or approval forged');
+  ||first.schema!=='control-p10-emitted-build-v1'){
+  const a=new Map((first?.files||[]).map(x=>[x.path,x.sha256]));
+  const b=new Map((second?.files||[]).map(x=>[x.path,x.sha256]));
+  const differences=[...new Set([...a.keys(),...b.keys()])].sort().filter(x=>a.get(x)!==b.get(x));
+  throw Error('Executable outputs differ, source was swapped or approval forged. Different paths: '
+   +JSON.stringify(differences.slice(0,12))+'; changed file count='+differences.length);
+ }
  return {matched:true,sha256:first.sha256,count:first.files.length,
   releaseAuthorized:false,deploymentAuthorized:false};
 }

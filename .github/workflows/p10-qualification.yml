@@ -10,6 +10,7 @@ env:
   CONTROL_P10_EXPECTED_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
   CONTROL_P9_EXPECTED_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
   NEXT_TELEMETRY_DISABLED: '1'
+  CONTROL_P10_BUILD_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
 jobs:
   application:
     runs-on: ubuntu-24.04
