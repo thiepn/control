@@ -106,6 +106,10 @@ export function createWorker(auth=verifyAccess){
     const rows=await env.DB.prepare('SELECT * FROM project_reviews ORDER BY assessed_at DESC, repo_url LIMIT 2000').all();
     return json({items:rows.results||[]});
    }
+   if(path==='/api/focus'&&method==='GET'){
+    const rows=await env.DB.prepare("SELECT f.rank,f.repo_url,f.lane,f.headline,f.rationale,f.next_action,f.constraint_note,f.dependency_url,f.dependency_note,f.deadline_date,f.deadline_evidence_url,f.evidence_url,f.confidence,f.checked_at FROM focus_recommendations f JOIN projects p ON p.repo_url=f.repo_url ORDER BY f.rank LIMIT 5").all();
+    return json({items:rows.results||[]});
+   }
    if(path==='/api/signals'&&method==='GET'){
     const rows=await env.DB.prepare('SELECT repo_url,signal_key,kind,dimension,state,label,detail,evidence_url,checked_at FROM project_signals ORDER BY repo_url,kind,dimension,signal_key LIMIT 2000').all();
     return json({items:rows.results||[]});

@@ -21,7 +21,7 @@
 | R1 — Decision-first command center | Replace static list with polished navigation, Focus, Portfolio, Intelligence, Activity; add evidenced review records for active projects | Live responsive dashboard, review coverage, no manual data-entry requirement |
 | R2 — Full portfolio intelligence | Inspect and classify all 86 GitHub repositories, use evidence-driven active/archived/project families; mark unknowns | Coverage expanded, citations and confidence per reviewed repo |
 | R3 — Project briefings & scorecards | Project detail views: current phase, milestones, real blockers, delivery gaps, confidence, suggestions | Implemented source-linked private scorecards; see docs/R3_PROJECT_BRIEFINGS.md |
-| R4 — Smart prioritization | Portfolio-wide sequencing, critical path, time/effort/cost trade-offs, active focus budget, competing deadlines | Explainable top picks; no false completion |
+| R4 — Smart prioritization | Curated five-project budget, current blockers, evidenced prerequisites, deadline uncertainty and urgency lanes | Implemented qualitative focus; see docs/R4_SMART_FOCUS.md |
 | R5 — AI refresh engine | Schedule recurring ChatGPT-connected review using existing GitHub + Cloudflare tools, plus on-demand review by chat | Writes are conflict-aware, idempotent, visible and testable |
 | R6 — Change history & reliability | Evidence snapshots, stale review alerts, errors, source freshness and non-destructive correction | Owner sees what changed and why |
 | R7 — Dashboard experience | Keyboard access, small-screen real-device checks, refined tables, search, quick navigation and useful visualizations | Clearly legible, responsive, accessible, no generic template feel |

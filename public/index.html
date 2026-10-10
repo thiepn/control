@@ -32,8 +32,12 @@
  </div>
 </section>
 <section class="view" id="view-focus" hidden>
- <div class="page-head"><span class="overline">02 / WHAT TO WORK ON</span><h1>Focus queue<span class="accent">.</span></h1><p>AI-recommended order based on verified recent project evidence. Priorities are recommendations, not release approvals.</p></div>
- <div id="focusQueue"></div>
+ <div class="page-head"><span class="overline">02 / EVIDENCE-LED PRIORITIES</span><h1>Focus on fewer things<span class="accent">.</span></h1><p>A bounded AI-curated shortlist. Source-linked recommendations are separate from your saved P0–P3 priorities and do not authorize merging, deployment, or owner acceptance.</p></div>
+ <div id="focusSummary" class="focus-summary" aria-label="Focus capacity"></div>
+ <div class="focus-head-row"><div><span class="overline">ACTIONABLE NOW</span><h2>Fix first, expand later</h2></div><span class="meta">Confirmed engineering work</span></div><div id="focusNow"></div>
+ <div class="focus-head-row"><div><span class="overline">PLAN AND QUALIFY</span><h2>Prepare the next decisions</h2></div><span class="meta">Dependent on further evidence</span></div><div id="focusPrepare"></div>
+ <div class="focus-head-row"><div><span class="overline">EXTERNAL GATES</span><h2>Do not force progress</h2></div><span class="meta">Real-world approvals required</span></div><div id="focusWaiting"></div>
+ <p class="focus-method">Deadlines are shown only when independently sourced. Priority recommendations can be revised through ChatGPT; the dashboard does not require owner-side administration.</p>
 </section>
 <section class="view" id="view-portfolio" hidden>
  <div class="page-head"><span class="overline">03 / THE BIG PICTURE</span><h1>Project portfolio<span class="accent">.</span></h1><p>Every repository has an AI triage record. Evidence quality varies: PR/README reviews are distinguished from metadata-only classifications.</p></div>
