@@ -106,6 +106,10 @@ jobs:
         with:
           node-version: '22'
           cache: npm
+      - name: Create job-local ephemeral Server Action key for BOTH build comparisons
+        run: |
+          set -euo pipefail
+          echo "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY=$(openssl rand -base64 32)" >> "$GITHUB_ENV"
       - name: First clean locked-install build
         run: |
           npm ci
