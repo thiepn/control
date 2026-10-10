@@ -33,12 +33,12 @@ BEGIN
   THEN RAISE EXCEPTION 'candidate link state mismatch';END IF;
  -- Real RLS check as authenticated non-owner (not service role).
  PERFORM set_config('request.jwt.claim.sub',b::text,true);
- SET LOCAL ROLE authenticated;
+ EXECUTE 'SET LOCAL ROLE authenticated';
  IF EXISTS (SELECT 1 FROM public.project_repository_links WHERE project_id=project_a.id)
   THEN RAISE EXCEPTION 'cross-owner link visible';END IF;
  IF EXISTS (SELECT 1 FROM public.repository_candidates WHERE id IN (x,y))
   THEN RAISE EXCEPTION 'cross-owner intake visible';END IF;
- RESET ROLE;
+ EXECUTE 'RESET ROLE';
  PERFORM set_config('request.jwt.claim.sub','',true);
 END $$;
 SELECT 'PASS: owner-scoped bulk intake, explicit many-repos-to-one-project grouping and RLS' AS result;

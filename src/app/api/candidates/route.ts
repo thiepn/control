@@ -1,7 +1,7 @@
 import { requireOwner,json,fail,sameOrigin } from '@/lib/http';
 export async function GET(){
  const auth=await requireOwner();if(!auth)return json({error:'Unauthorized'},401);
- const {data,error}=await auth.reader.from('repository_candidates').select('id,full_name,github_repository_id,review_status,review_note').order('full_name').limit(250);
+ const {data,error}=await auth.reader.from('repository_candidates').select('id,full_name,github_repository_id,review_status,review_note,project_id').order('full_name').limit(250);
  if(error)return fail(error);return json({items:data||[]});
 }
 export async function POST(req:Request){
