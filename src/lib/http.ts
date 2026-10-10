@@ -1,12 +1,13 @@
 import { NextResponse } from 'next/server';
 import { userClient } from './supabase/server';
 import { adminClient } from './supabase/admin';
+import { controlOwnerAllowed } from './control-owner.mjs';
 export const noStore = { 'Cache-Control': 'private, no-store' };
 export function json(value: unknown, status = 200) { return NextResponse.json(value, { status, headers: noStore }); }
 export async function requireOwner() {
   const client = await userClient();
   const { data, error } = await client.auth.getUser(); // NOT getSession(): revalidate with auth service
-  if (error || !data.user || data.user.is_anonymous) return null;
+  if (error || !data.user || data.user.is_anonymous || !controlOwnerAllowed(data.user.id)) return null;
   return { ownerId: data.user.id, reader: client, writer: adminClient() };
 }
 export function fail(error: unknown) {

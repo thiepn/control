@@ -52,7 +52,12 @@ export default function Dashboard(){
  if(sort==='priority')return(ps.indexOf(a.priority||'')<0?99:ps.indexOf(a.priority||''))-(ps.indexOf(b.priority||'')<0?99:ps.indexOf(b.priority||''))||(a.manual_rank||0)-(b.manual_rank||0);
  return (a.manual_rank||0)-(b.manual_rank||0);
  }),[rows,sort,life,query]);
- async function execute(task:()=>Promise<unknown>,success='Saved'){setError('');setNotice('');try{await task();await refresh();setNotice(success);}catch(e){setError(e instanceof Error?e.message:'Operation failed');}}
+ async function execute(task:()=>Promise<unknown>,success='Saved'){
+  setError('');setNotice('');
+  try{await task();}catch(e){setError(e instanceof Error?e.message:'Operation failed');return;}
+  try{await refresh();setNotice(success);}
+  catch{setError('Write may have succeeded, but dashboard read-back failed. Refresh before repeating the action.');}
+ }
  const update=(item:Project,payload:Record<string,unknown>)=>execute(()=>api(`/api/projects/${item.id}`,{method:'PATCH',headers:{'If-Match':String(item.version)},body:JSON.stringify(payload)}));
  const add=()=>execute(async()=>{const title=newTitle.trim();if(!title)throw Error('Title required');const slug=title.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');if(!slug)throw Error('Name must contain Latin letters or digits');await api('/api/projects',{method:'POST',body:JSON.stringify({title,slug,lifecycle:'inbox'})});setNewTitle('');},'Project added to inbox');
  const focusSet=(ids:string[])=>execute(()=>api('/api/focus',{method:'PUT',body:JSON.stringify({project_ids:ids})}),'Weekly focus updated');

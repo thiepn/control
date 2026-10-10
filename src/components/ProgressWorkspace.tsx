@@ -23,8 +23,9 @@ export default function ProgressWorkspace({projects,onChange}:{projects:Project[
   try{const r=await fetch('/api/progress',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({project_id:project,action,payload})});
    const data=await r.json();if(!r.ok)throw Error(data.error||'Action failed');
    try{await reload();await onChange?.();setMessage('Saved');}
-   catch{setMessage('Saved to the database, but the refreshed dashboard could not be loaded. Reconnect to verify.');}}
-  catch(e){setMessage(e instanceof Error?e.message:'Action failed');}finally{setBusy(false)}
+   catch{setMessage('Saved to the database, but the refreshed dashboard could not be loaded. Reconnect to verify.');}
+   return true;}
+  catch(e){setMessage(e instanceof Error?e.message:'Action failed');return false;}finally{setBusy(false)}
  };
  return <section aria-label="Progress workspace">
   <div className="section-label"><strong>MILESTONES AND PHASES</strong><span>Evidence before completion</span></div>
@@ -47,11 +48,12 @@ export default function ProgressWorkspace({projects,onChange}:{projects:Project[
     <h2>{current.name}</h2><p>{current.definition_of_done}</p>
     <div className="table-wrap"><table><thead><tr><th>Milestone</th><th>Weight</th><th>Reported</th><th>Evidence</th></tr></thead>
      <tbody>{(current.milestones||[]).map(m=><tr key={m.id}><td>{m.title}</td><td>{m.weight}</td><td>
-      <select aria-label={'Report '+m.title} value={m.completion_fraction??0} disabled={busy}
-        onChange={e=>act('milestone.report',{milestone_id:m.id,fraction:Number(e.target.value)})}>
+      <select aria-label={'Report '+m.title} value={m.completion_fraction===null?'':m.completion_fraction} disabled={busy}
+        onChange={e=>{if(e.target.value!=='')act('milestone.report',{milestone_id:m.id,fraction:Number(e.target.value)});}}>
+       <option value="" disabled>Unassessed</option>
        {[0,0.25,0.5,0.75,1].map(x=><option key={x} value={x}>{x*100}%</option>)}
       </select></td><td>{m.evidence_grade==='verified'?'Verified':'Not verified'}</td></tr>)}</tbody></table></div>
-    <form className="quick-add" onSubmit={e=>{e.preventDefault();act('milestone.create',{target_id:current.id,title:milestone,weight:Number(weight)}).then(()=>setMilestone(''))}}>
+    <form className="quick-add" onSubmit={e=>{e.preventDefault();act('milestone.create',{target_id:current.id,title:milestone,weight:Number(weight)}).then(saved=>{if(saved)setMilestone('');})}}>
      <label>NEW MILESTONE<input required value={milestone} onChange={e=>setMilestone(e.target.value)}/></label>
      <label>WEIGHT<input type="number" min="0.0001" max="10000" step="0.1" value={weight} onChange={e=>setWeight(e.target.value)}/></label>
      <button type="submit" disabled={busy}>Add milestone</button>
