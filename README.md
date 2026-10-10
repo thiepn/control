@@ -1,6 +1,6 @@
 # THIEPN Control — owner-only Cloudflare dashboard
 
-**Ready for production deployment; remote D1 table already prepared.** No Supabase, Docker, local server or custom authentication.
+**Live owner-only AI-managed command center.** No Supabase, Docker, local server or custom authentication.
 
 ## Live deployment
 
@@ -12,7 +12,7 @@ The owner-only Cloudflare Access application protects `control.thiepn.dev` and W
 
 ## Features
 
-Projects with manual completion 0–100% (nullable), priority P0–P3, status, next action, GitHub link, notes. Search, filter, sort, create/edit/delete, bulk import `owner/repo` names, and downloadable JSON backup. No inferred GitHub progress.
+Overview, Focus, Portfolio, Intelligence and Activity views. Private evidence-backed AI reviews with per-project source links; 86 GitHub projects imported. Progress is not inferred from commits. Existing private CRUD endpoints remain available to ChatGPT-managed updates but manual editing is not the user workflow. See `docs/COMMAND_CENTER_REBUILD.md` for the multi-phase product direction.
 
 ## Maintenance
 

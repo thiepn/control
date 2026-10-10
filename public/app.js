@@ -1,109 +1,37 @@
+const state={projects:[],reviews:new Map(),view:'overview',category:'All',query:'',filter:'all'};
 const $=id=>document.getElementById(id);
-let projects=[],loading=false,editing=null;
-const statusNames={planned:'Planned',active:'Active',paused:'Paused',completed:'Completed'};
-function el(tag,className,text){const n=document.createElement(tag);if(className)n.className=className;if(text!==undefined)n.textContent=text;return n;}
-function notice(message,success=false){const n=$('message');n.textContent=message;n.className='message'+(success?' success':'');n.hidden=false;}
-function clearNotice(){$('message').hidden=true;}
-async function api(path,options){
- const res=await fetch(path,{cache:'no-store',...options,headers:{...(options?.body?{'Content-Type':'application/json'}:{}),...options?.headers}});
- let data;try{data=await res.json();}catch{throw Error('Invalid server response');}
- if(!res.ok)throw Error(data.error||'Request failed ('+res.status+')');
- return data;
+const escape=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const url=s=>{try{const x=new URL(s);return x.protocol==='https:'&&x.hostname==='github.com'?x.href:null}catch{return null}};
+const format=d=>{if(!d)return'Not assessed';const x=new Date(d.replace(' ','T')+'Z');return Number.isNaN(x.getTime())?'Not assessed':x.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})};
+const priority=p=>'<span class="priority '+escape(p||'null')+'">'+escape(p||'—')+'</span>';
+const matched=p=>state.reviews.get(p.repo_url)||null;
+const decorated=()=>state.projects.map(p=>({...p,review:matched(p)}));
+const reviewed=()=>decorated().filter(p=>p.review);
+const focus=()=>reviewed().filter(p=>p.priority).sort((a,b)=>['P0','P1','P2','P3'].indexOf(a.priority)-['P0','P1','P2','P3'].indexOf(b.priority)||Number(!!b.review?.blocker)-Number(!!a.review?.blocker)||a.title.localeCompare(b.title));
+const link=(p,label='Open evidence ↗')=>{const href=url(p.review?.evidence_url)||url(p.repo_url);return href?'<a class="evidence" target="_blank" rel="noopener noreferrer" href="'+escape(href)+'">'+label+'</a>':''};
+const fallback='<div class="empty">No verified AI reviews are available yet. Unknown projects are not ranked by arbitrary commit counts.</div>';
+const tally=items=>({total:items.length,reviewed:items.filter(p=>p.review).length,active:items.filter(p=>p.review&&p.status==='active').length,blocked:items.filter(p=>p.review?.blocker).length});
+function setView(name){const allowed=['overview','focus','portfolio','intelligence','activity'];state.view=allowed.includes(name)?name:'overview';document.querySelectorAll('.view').forEach(v=>v.hidden=v.id!=='view-'+state.view);document.querySelectorAll('[data-view]').forEach(a=>a.setAttribute('aria-current',a.dataset.view===state.view?'page':'false'));$('crumb').textContent=state.view.toUpperCase();window.scrollTo({top:0,behavior:'instant'});renderView();}
+function stat(label,value,note){return '<div class="stat"><div class="stat-label">'+escape(label)+'</div><div class="stat-value">'+escape(value)+'</div><div class="stat-note">'+escape(note)+'</div></div>'}
+function catData(){const m=new Map();for(const p of decorated()){const c=p.review?.category||'Awaiting AI review';m.set(c,(m.get(c)||0)+1)}return [...m].sort((a,b)=>b[1]-a[1])}
+function renderOverview(){const items=decorated(),t=tally(items),f=focus(),hero=f[0],block=reviewed().filter(p=>p.review.blocker).slice(0,4),categories=catData();$('overviewScope').textContent=String(t.total);$('overviewStats').innerHTML=stat('REPOSITORIES',t.total,'Connected GitHub projects')+stat('AI REVIEWS',t.reviewed,'Evidence-backed assessments')+stat('FOCUS NOW',t.active,'Reviewed and currently active')+stat('KNOWN BLOCKERS',t.blocked,'Identified release or quality gates');
+$('focusSource').textContent=t.reviewed+' evidence reviews';
+$('heroFocus').innerHTML=hero?'<div class="hero-head"><div><div class="hero-title">'+escape(hero.title)+'</div><div class="hero-stage">'+escape(hero.review.stage||hero.review.category)+'</div></div>'+priority(hero.priority)+'</div><p class="hero-summary">'+escape(hero.review.summary)+'</p><div class="hero-recommendation"><span>RECOMMENDED NEXT STEP</span>'+escape(hero.review.recommendation)+'</div><div class="hero-foot"><span>AI review · '+escape(hero.review.confidence)+' confidence</span>'+link(hero)+'</div>':fallback;
+$('blockers').innerHTML=block.length?block.map(p=>'<div class="rowitem"><span class="blocker-bullet"></span><div class="rowbody"><div class="rowname">'+escape(p.title)+'</div><div class="rowsub">'+escape(p.review.blocker)+'</div></div></div>').join(''):fallback;
+$('focusPreview').innerHTML=f.slice(0,5).map(p=>'<div class="rowitem"><div class="rowbody"><div class="rowname">'+escape(p.title)+'</div><div class="rowsub">'+escape(p.review.recommendation)+'</div></div>'+priority(p.priority)+'</div>').join('')||fallback;
+$('categoryPreview').innerHTML=categories.map(([name,count])=>'<div class="cattrow"><span class="cattname" title="'+escape(name)+'">'+escape(name)+'</span><span class="cattbar"><span style="width:'+Math.round(count/Math.max(1,t.total)*100)+'%"></span></span><span class="cattvalue">'+count+'</span></div>').join('');
 }
-function priorityIndex(value){return ['P0','P1','P2','P3'].indexOf(value)<0?4:['P0','P1','P2','P3'].indexOf(value);}
-function shown(){
- const q=$('search').value.trim().toLowerCase(),p=$('priorityFilter').value,s=$('statusFilter').value,sort=$('sort').value;
- const rows=projects.filter(x=>{
-  if(p&&(p==='unassigned'?x.priority!==null:x.priority!==p))return false;
-  if(s&&x.status!==s)return false;
-  return !q||[x.title,x.next_action,x.repo_url,x.notes].some(v=>String(v||'').toLowerCase().includes(q));
- });
- rows.sort((a,b)=>sort==='name'?a.title.localeCompare(b.title):sort==='progress'?(b.progress??-1)-(a.progress??-1)||a.title.localeCompare(b.title):sort==='updated'?String(b.updated_at||'').localeCompare(String(a.updated_at||'')):priorityIndex(a.priority)-priorityIndex(b.priority)||a.title.localeCompare(b.title));
- return rows;
+function renderFocus(){const arr=focus(),labels=[['P0','CRITICAL / FIRST'],['P1','IMPORTANT / NEXT'],['P2','MAINTAIN / LATER'],['P3','BACKLOG / OPTIONAL']];$('focusQueue').innerHTML=labels.map(([level,title])=>{const rows=arr.filter(p=>p.priority===level);if(!rows.length)return'';return '<section class="queue-group"><div class="queue-title">'+title+' · '+rows.length+'</div>'+rows.map((p,i)=>'<article class="queue-card '+(i===0?'first':'')+'"><div class="queue-rank">'+String(i+1).padStart(2,'0')+'</div><div><div class="queue-name">'+escape(p.title)+'</div><div class="queue-detail">'+escape(p.review.summary)+'</div><div class="queue-next"><strong>Next:</strong> '+escape(p.review.recommendation)+'</div></div><div class="queue-right">'+priority(level)+'<small>'+escape(p.review.stage||'AI reviewed')+'</small>'+link(p,'Evidence ↗')+'</div></article>').join('')+'</section>'}).join('')||fallback}
+function renderPortfolio(){const arr=decorated(),q=state.query.toLowerCase(),filtered=arr.filter(p=>{if(state.category!=='All'&&(p.review?.category||'Awaiting AI review')!==state.category)return false;if(state.filter==='reviewed'&&!p.review)return false;if(state.filter==='unreviewed'&&p.review)return false;if(state.filter==='active'&&(!p.review||p.status!=='active'))return false;if(state.filter==='blocked'&&!p.review?.blocker)return false;return (p.title+' '+(p.review?.summary||'')+' '+(p.review?.recommendation||'')+' '+(p.review?.category||'')).toLowerCase().includes(q)}).sort((a,b)=>Number(!!b.review)-Number(!!a.review)||(['P0','P1','P2','P3'].indexOf(a.priority)<0?99:['P0','P1','P2','P3'].indexOf(a.priority))-(['P0','P1','P2','P3'].indexOf(b.priority)<0?99:['P0','P1','P2','P3'].indexOf(b.priority))||a.title.localeCompare(b.title));
+$('categoryChips').innerHTML=['All',...catData().map(x=>x[0])].map(c=>'<button type="button" class="'+(state.category===c?'active':'')+'" data-category="'+escape(c)+'">'+escape(c)+'</button>').join('');
+$('portfolioCount').textContent=filtered.length+' projects';$('projectGrid').innerHTML=filtered.map(p=>'<article class="project-tile"><div class="tile-head"><div><div class="tile-title">'+escape(p.title)+'</div><div class="tile-category">'+escape(p.review?.category||'Awaiting AI review')+'</div></div>'+priority(p.review?p.priority:null)+'</div><div class="tile-summary">'+escape(p.review?.recommendation||'No evidence-backed assessment yet. This project will enter the AI review queue.')+'</div><div class="tile-bottom"><span class="tile-state '+(p.review?'reviewed':'')+'">'+(p.review?'AI reviewed · '+escape(p.review.confidence)+' confidence':'Unassessed')+'</span>'+(p.review?link(p,'Evidence ↗'):(url(p.repo_url)?'<a class="evidence" target="_blank" rel="noopener noreferrer" href="'+escape(url(p.repo_url))+'">Repository ↗</a>':''))+'</div></article>').join('')||'<div class="empty">No projects match these filters.</div>';
 }
-function render(){
- $('totalCount').textContent=String(projects.length);
- $('activeCount').textContent=String(projects.filter(p=>p.status==='active').length);
- $('completeCount').textContent=String(projects.filter(p=>p.status==='completed').length);
- const assessed=projects.filter(p=>p.progress!==null&&Number.isInteger(p.progress));
- $('averageProgress').textContent=assessed.length?Math.round(assessed.reduce((sum,p)=>sum+p.progress,0)/assessed.length)+'%':'—';
- const rows=shown();$('listCount').textContent=rows.length;
- const list=$('list');list.replaceChildren();
- for(const p of rows){
-  const article=el('article','project-card');
-  const main=el('div','card-main'),mark=el('span','project-initial',(p.title||'?').slice(0,1).toUpperCase()),texts=el('div');
-  texts.style.minWidth='0';texts.append(el('span','project-name',p.title));
-  if(p.repo_url){const a=el('a','repo-link',p.repo_url.replace('https://github.com/',''));a.href=p.repo_url;a.target='_blank';a.rel='noopener noreferrer';texts.append(a);}
-  else texts.append(el('span','muted','No repository linked'));
-  main.append(mark,texts);
-  const pri=el('div'),tag=el('span','priority '+(p.priority||'none'),p.priority||'—');pri.append(tag);
-  const prog=el('div','card-progress');
-  if(p.progress==null)prog.append(el('span','progress-unassessed','Not assessed'));
-  else{
-   const top=el('div','progress-top'),label=el('span','', 'COMPLETION'),v=el('span','progress-value',p.progress+'%');top.append(label,v);
-   const bar=el('div','bar'),inside=el('div','bar-inner');inside.style.width=p.progress+'%';bar.append(inside);prog.append(top,bar);
-  }
-  const next=el('div','card-next');next.append(el('span','action-label','NEXT ACTION'),el('span','next-action',p.next_action||'Not specified'));
-  const status=el('div','card-status');status.append(el('span','status '+p.status,statusNames[p.status]||p.status));
-  const buttons=el('div','card-actions'),edit=el('button','','✎'),del=el('button','danger','×');
-  edit.type='button';edit.setAttribute('aria-label','Edit '+p.title);
-  del.type='button';del.setAttribute('aria-label','Delete '+p.title);
-  edit.addEventListener('click',()=>openEdit(p));del.addEventListener('click',()=>remove(p));
-  buttons.append(edit,del);
-  article.append(main,pri,prog,next,status,buttons);list.append(article);
- }
- const empty=$('empty');empty.hidden=rows.length!==0||loading;
- if(!empty.hidden){$('emptyTitle').textContent=projects.length?'No matching projects':'No projects yet';$('emptyBody').textContent=projects.length?'Adjust your search or filters.':'Create your first project or import repositories.';}
-}
-async function load(){
- if(loading)return;loading=true;try{const data=await api('/api/projects');if(!Array.isArray(data.items))throw Error('Invalid project list');projects=data.items;clearNotice();}catch(e){notice('Could not load saved projects: '+e.message+' — try refreshing.');}finally{loading=false;render();}
-}
-function openEdit(project=null){
- editing=project;$('editHeading').textContent=project?'Edit project':'New project';
- const form=$('projectForm');form.reset();
- for(const field of ['title','priority','status','next_action','repo_url','notes'])form.elements[field].value=project?.[field]??(field==='status'?'planned':'');
- form.elements.progress.value=project?.progress??'';
- $('formError').hidden=true;$('editDialog').showModal();form.elements.title.focus();
-}
-async function save(e){
- e.preventDefault();const form=$('projectForm'),button=$('saveBtn');$('formError').hidden=true;
- const d=new FormData(form),progress=String(d.get('progress')).trim();
- const data={title:d.get('title'),priority:d.get('priority')||null,progress:progress===''?null:Number(progress),status:d.get('status'),next_action:d.get('next_action')||null,repo_url:d.get('repo_url')||null,notes:d.get('notes')||null};
- if(editing)data.version=editing.version;
- button.disabled=true;
- try{
-  await api(editing?'/api/projects/'+editing.id:'/api/projects',{method:editing?'PATCH':'POST',body:JSON.stringify(data)});
-  $('editDialog').close();await load();notice(editing?'Project updated':'Project created',true);
- }catch(err){$('formError').textContent=err.message;$('formError').hidden=false;}
- finally{button.disabled=false;}
-}
-async function remove(project){
- if(!confirm('Delete "'+project.title+'"? This cannot be undone. Export a backup first if needed.'))return;
- try{await api('/api/projects/'+project.id,{method:'DELETE',body:JSON.stringify({version:project.version})});await load();notice('Project deleted',true);}catch(e){notice(e.message);}
-}
-async function importRepos(e){
- e.preventDefault();const form=$('importForm'),button=$('importSaveBtn');$('importError').hidden=true;
- const names=String(new FormData(form).get('repos')).split(/[\n,]+/).map(x=>x.trim().replace(/^https:\/\/github\.com\//,'').replace(/\/$/,'')).filter(Boolean);
- button.disabled=true;try{
-  const res=await api('/api/import',{method:'POST',body:JSON.stringify({names})});
-  $('importDialog').close();form.reset();await load();notice(res.imported+' repositories added ('+(res.submitted-res.imported)+' already present).',true);
- }catch(error){$('importError').textContent=error.message;$('importError').hidden=false;}finally{button.disabled=false;}
-}
-async function backup(){
- const button=$('backupBtn');button.disabled=true;
- try{
-  const data=await api('/api/backup');
-  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob);
-  const link=document.createElement('a');link.href=url;link.download='control-backup-'+new Date().toISOString().slice(0,10)+'.json';document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),3000);
-  notice('Backup downloaded. Store it somewhere private.',true);
- }catch(e){notice('Backup failed: '+e.message);}finally{button.disabled=false;}
-}
-$('addBtn').addEventListener('click',()=>openEdit());
-$('emptyAdd').addEventListener('click',()=>openEdit());
-$('importBtn').addEventListener('click',()=>{$('importError').hidden=true;$('importDialog').showModal();});
-$('backupBtn').addEventListener('click',backup);
-$('projectForm').addEventListener('submit',save);
-$('importForm').addEventListener('submit',importRepos);
-document.querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click',()=>$((b.dataset.close)).close()));
-for(const id of ['search','priorityFilter','statusFilter','sort'])$(id).addEventListener(id==='search'?'input':'change',render);
-load();
+function renderIntelligence(){const items=decorated(),t=tally(items),percent=Math.round(t.reviewed/Math.max(1,t.total)*100);$('coverageNumber').textContent=percent+'%';$('coverageTrack').style.width=percent+'%';$('coverageDetail').textContent=t.reviewed+' of '+t.total+' projects have an evidence-backed review. '+(t.total-t.reviewed)+' are explicitly unassessed — not marked as complete or failed.';$('reviewNotes').innerHTML=reviewed().sort((a,b)=>a.title.localeCompare(b.title)).map(p=>'<article class="noteitem"><div class="notehead"><span class="notename">'+escape(p.title)+'</span>'+priority(p.priority)+'</div><p class="notetext">'+escape(p.review.summary)+'</p><p class="notetext"><strong>Current constraint:</strong> '+escape(p.review.blocker||'No verified blocker')+'</p><div class="notehint">'+escape(p.review.stage||'')+' · '+escape(p.review.confidence)+' confidence · reviewed '+escape(format(p.review.assessed_at))+' · '+link(p)+'</div></article>').join('')||fallback;}
+function renderActivity(){const rows=reviewed().sort((a,b)=>String(b.review.assessed_at).localeCompare(String(a.review.assessed_at)));$('activityFeed').innerHTML=rows.map(p=>'<article class="activity-event"><span class="activity-date">'+escape(format(p.review.assessed_at))+' / AI ASSESSMENT</span><div class="activity-title">'+escape(p.title)+' — '+escape(p.review.stage||'project review')+'</div><p class="activity-desc">'+escape(p.review.recommendation)+'</p>'+link(p)+'</article>').join('')||fallback}
+function renderView(){({overview:renderOverview,focus:renderFocus,portfolio:renderPortfolio,intelligence:renderIntelligence,activity:renderActivity})[state.view]();}
+async function init(){try{const [p,r]=await Promise.all([fetch('/api/projects',{credentials:'same-origin'}),fetch('/api/reviews',{credentials:'same-origin'})]);if(!p.ok||!r.ok)throw new Error('Dashboard data request denied or unavailable ('+p.status+'/'+r.status+')');const pj=await p.json(),rj=await r.json();state.projects=Array.isArray(pj.items)?pj.items:[];state.reviews=new Map((Array.isArray(rj.items)?rj.items:[]).map(x=>[x.repo_url,x]));const dates=[...state.reviews.values()].map(x=>x.assessed_at).filter(Boolean).sort().reverse();$('reviewDate').textContent=dates.length?'Reviewed '+format(dates[0]):'Awaiting first AI review';setView(location.hash.slice(1)||'overview')}catch(e){const n=$('notice');n.hidden=false;n.textContent='Unable to load Control: '+e.message;document.querySelectorAll('.view').forEach(v=>v.hidden=true)}}
+addEventListener('hashchange',()=>setView(location.hash.slice(1)||'overview'));
+$('search').addEventListener('input',e=>{state.query=e.target.value;renderPortfolio()});
+$('filterState').addEventListener('change',e=>{state.filter=e.target.value;renderPortfolio()});
+$('categoryChips').addEventListener('click',e=>{const b=e.target.closest('[data-category]');if(b){state.category=b.dataset.category;renderPortfolio()}});
+init();

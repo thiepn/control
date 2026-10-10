@@ -102,6 +102,10 @@ export function createWorker(auth=verifyAccess){
   if(!['GET','POST','PATCH','DELETE'].includes(method))return json({error:'Method not allowed'},405);
   if(method!=='GET'&&!sameOrigin(request))return json({error:'Invalid origin'},403);
   try{
+   if(path==='/api/reviews'&&method==='GET'){
+    const rows=await env.DB.prepare('SELECT * FROM project_reviews ORDER BY assessed_at DESC, repo_url LIMIT 2000').all();
+    return json({items:rows.results||[]});
+   }
    if(path==='/api/projects'&&method==='GET'){
     const rows=await env.DB.prepare('SELECT * FROM projects ORDER BY updated_at DESC, id DESC LIMIT 2000').all();
     return json({items:rows.results||[]});

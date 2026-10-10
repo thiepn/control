@@ -1,7 +1,7 @@
 name: Simple Control CI
 on:
   push:
-    branches: [feat/control-cloudflare-simple-mvp]
+    branches: [main, feat/control-cloudflare-simple-mvp]
   pull_request:
     paths: ['src/**','public/**','tests/**','migrations/**','wrangler.json','package.json','.github/workflows/simple-control.yml']
 permissions:
