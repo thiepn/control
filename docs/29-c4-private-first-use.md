@@ -9,6 +9,7 @@ C3's qualified head `9a22c1ad715b4d0a6f3ef7c435124b6fdb77f877` is the parent. C4
 2. `requireOwner()` previously allowed **any** Supabase-authenticated user through its service-role-backed API writer and Home showed the Dashboard to any signed-in user. Server-only `CONTROL_ALLOWED_OWNER_IDS` now strictly allows only preapproved Supabase Auth UUIDs. Missing/malformed allowlist => login is disabled, API reads/writes denied. For isolated owner A/B browser tests, allowlist both **only in the authorized disposable environment**. Never embed UUIDs or real secrets in public source.
 3. Dashboard `execute` previously caught both RPC failures and post-write refresh errors as “Operation failed,” prompting accidental duplicate user submissions. Now separates the write outcome from uncertain later read-back.
 4. Newly created null-fraction milestones appeared as `0%`. Now the actual nullable SQL state is displayed as **Unassessed** until the user explicitly reports a value (including genuine 0%).
+5. A rejected milestone-create request previously cleared the typed milestone name because `act()` swallowed its error and a `.then()` handler always reset the form. C4 keeps the field intact for a proper retry after error.
 
 ## Exact owner actions required (NOT yet approved)
 1. Authorize and provision a **separate disposable** Supabase project, distinct from existing THIEPN Account and THIEPN Core. This request does **not** grant permission to create it or charge the account.
