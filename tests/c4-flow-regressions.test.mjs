@@ -24,3 +24,9 @@ test('new milestones display Unassessed rather than fabricating 0 percent',()=>{
  assert.match(progress,/<option value="" disabled>Unassessed<\/option>/);
  assert.match(progress,/if\(e\.target\.value!==''\)act\('milestone\.report'/);
 });
+
+test('failed milestone writes preserve the entered milestone name for retry',()=>{
+ assert.match(progress,/catch\(e\)\{setMessage\(e instanceof Error\?e\.message:'Action failed'\);return false;/);
+ assert.match(progress,/\.then\(saved=>\{if\(saved\)setMilestone\(''\);\}\)/);
+ assert.doesNotMatch(progress,/\.then\(\(\)=>setMilestone\(''\)\)/);
+});
